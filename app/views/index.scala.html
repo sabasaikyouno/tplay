@@ -1,8 +1,11 @@
-@()
+@(textDataList: List[TextData])
 
 @main("hello") {
-<form>
-    <input type="text">
+@for(textData <- textDataList) {
+    <h3>@textData.text</h3>
+}
+<form action="/post_text" method="post">
+    <input type="text" name="text">
     <input type="submit">
 </form>
 }
