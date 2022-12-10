@@ -2,7 +2,7 @@ package infrastructure.repository
 
 import java.time.LocalDateTime
 
-import models.TextData
+import models.{SendText, TextData}
 import domain.repository.TextDataRepository
 import scalikejdbc._
 
@@ -11,7 +11,7 @@ import scala.util.Try
 
 class TextDataRepositoryImpl extends TextDataRepository {
 
-  def create(textData: TextData): Future[_] =
+  def create(sendText: SendText): Future[_] =
     Future.fromTry(Try {
       using(DB(ConnectionPool.borrow())) { db =>
         db.localTx { implicit session =>
@@ -20,7 +20,7 @@ class TextDataRepositoryImpl extends TextDataRepository {
                  | text,
                  | created_time
                  | ) VALUES (
-                 | ${textData.text},
+                 | ${sendText.text},
                  | ${LocalDateTime.now()}
                  | )
                """.stripMargin
@@ -35,7 +35,9 @@ class TextDataRepositoryImpl extends TextDataRepository {
         db.readOnly { implicit session =>
           val sql =
             sql"""SELECT
-                 | text
+                 | text_id,
+                 | text,
+                 | created_time
                  | FROM text_properties
                  | ORDER BY created_time DESC
                  | LIMIT $count
@@ -47,6 +49,8 @@ class TextDataRepositoryImpl extends TextDataRepository {
 
   private[this] def resultSetToTextData(rs: WrappedResultSet): TextData =
     TextData(
-      text = rs.string("text")
+      id = rs.long("text_id"),
+      text = rs.string("text"),
+      createdTime = rs.localDateTime("created_time")
     )
 }

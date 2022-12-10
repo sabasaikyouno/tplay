@@ -2,7 +2,7 @@
 
 @main("hello") {
 @for(textData <- textDataList) {
-    <h3>@textData.text</h3>
+    <h3>@textData.id @textData.text @textData.createdTime</h3>
 }
 <form action="/post_text" method="post">
     <input type="text" name="text">

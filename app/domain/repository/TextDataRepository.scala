@@ -1,11 +1,11 @@
 package domain.repository
 
-import models.TextData
+import models.{SendText, TextData}
 
 import scala.concurrent.Future
 
 trait TextDataRepository {
-  def create(textData: TextData): Future[_]
+  def create(sendText: SendText): Future[_]
 
   def getLatestText(count: Int): Future[List[TextData]]
 }

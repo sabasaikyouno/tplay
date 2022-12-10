@@ -3,7 +3,7 @@ package controllers
 import javax.inject._
 import play.api._
 import play.api.mvc._
-import models.TextData._
+import models.SendText._
 import domain.repository.TextDataRepository
 import play.api.i18n.I18nSupport
 
@@ -20,12 +20,12 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents, v
   }
 
   def postText() = Action { implicit request =>
-    textForm.bindFromRequest.fold(
+    sendTextForm.bindFromRequest.fold(
       errors => {
         Redirect("/")
       },
-      textData => {
-        textDataRepository.create(textData)
+      sendText => {
+        textDataRepository.create(sendText)
         Redirect("/")
       }
     )
