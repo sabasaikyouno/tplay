@@ -8,17 +8,13 @@ import play.api._
 import play.api.mvc._
 import models.SendText._
 import domain.repository.PostedDataRepository
-import models.{ImageData, PostImage, PostText, PostedData, TextData}
+import models.{PostImage, PostText}
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import akka.stream.scaladsl._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-/**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
- */
 @Singleton
 class HomeController @Inject()(
   val controllerComponents: ControllerComponents,
