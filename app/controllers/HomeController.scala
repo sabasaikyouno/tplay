@@ -7,8 +7,8 @@ import javax.inject._
 import play.api._
 import play.api.mvc._
 import models.SendText._
-import domain.repository.{ImageDataRepository, TextDataRepository}
-import models.{ImageData, PostedData, TextData}
+import domain.repository.PostedDataRepository
+import models.{ImageData, PostImage, PostText, PostedData, TextData}
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import akka.stream.scaladsl._
@@ -22,26 +22,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 @Singleton
 class HomeController @Inject()(
   val controllerComponents: ControllerComponents,
-  val textDataRepository: TextDataRepository,
-  val imageDataRepository: ImageDataRepository
+  val postedDataRepository: PostedDataRepository
 ) extends BaseController with I18nSupport {
 
   def index = Action.async { implicit request =>
-    def postedWithId(list: List[PostedData], id: Long): List[PostedData] = list match {
-      case TextData(_, text, createdTime) :: t => TextData(id, text, createdTime) :: postedWithId(t, id + 1)
-      case ImageData(_, img, createdTime) :: t => ImageData(id, img, createdTime) :: postedWithId(t, id + 1)
-      case _ => Nil
-    }
-
-    val textList = textDataRepository.getLatestText(3)
-    val imgList = imageDataRepository.getLatestImage(3)
-    val textImageList = textList.zipWith(imgList)(_ ::: _)
-
-    textImageList.map { list =>
-      val sortedList = list.sortBy(_.createdTime).takeRight(3)
-
-      Ok(views.html.index(postedWithId(sortedList, sortedList.head.id)))
-    }
+    postedDataRepository.getLatestPosted(3).map( list =>
+      Ok(views.html.index(list))
+    )
   }
 
   def postText = Action { implicit request =>
@@ -50,7 +37,7 @@ class HomeController @Inject()(
         Redirect("/")
       },
       sendText => {
-        textDataRepository.create(sendText)
+        postedDataRepository.create(PostText(sendText.text))
         Redirect("/")
       }
     )
@@ -60,7 +47,7 @@ class HomeController @Inject()(
     request.body.file("image").map { image =>
       val imgPath = s"tmp/img/${UUID.randomUUID() + image.filename}"
       image.ref.moveTo(new File(imgPath))
-      imageDataRepository.create(imgPath)
+      postedDataRepository.create(PostImage(imgPath))
       Redirect("/")
     }.getOrElse {
       Redirect("/")
