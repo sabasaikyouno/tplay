@@ -1,11 +1,18 @@
-@(textDataList: List[TextData])
+@(postedDataList: List[PostedData])
 
 @main("hello") {
-@for(textData <- textDataList) {
-    <h3>@textData.id @textData.text @textData.createdTime</h3>
+@for(postedData <- postedDataList) {
+    @postedData match {
+        case TextData(id, text, createdTime) => {<h3>@id @text @createdTime</h3>}
+        case ImageData(id, img, createdTime) => {<img src="/getImage/@img">}
+    }
 }
 <form action="/post_text" method="post">
     <input type="text" name="text">
+    <input type="submit">
+</form>
+<form action="/post_image" method="post" enctype="multipart/form-data">
+    <input type="file" name="image">
     <input type="submit">
 </form>
 }
