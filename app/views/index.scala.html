@@ -1,18 +1,12 @@
-@(postedDataList: List[PostedData])
+@import models.room._
+@(roomDataList: List[RoomData])
 
-@main("hello") {
-@for(postedData <- postedDataList) {
-    @postedData match {
-        case TextData(id, text, createdTime) => {<h3>@id @text @createdTime</h3>}
-        case ImageData(id, img, createdTime) => {<img src="/getImage/@img">}
-    }
+@main("home") {
+@for(roomData <- roomDataList) {
+    <button onclick="location.href='/room/@roomData.roomId'">@roomData.id</button>
 }
-<form action="/post_text" method="post">
-    <input type="text" name="text">
-    <input type="submit">
-</form>
-<form action="/post_image" method="post" enctype="multipart/form-data">
-    <input type="file" name="image">
-    <input type="submit">
+
+<form action="/create_room" method="post">
+    <input type="submit" value="create room">
 </form>
 }

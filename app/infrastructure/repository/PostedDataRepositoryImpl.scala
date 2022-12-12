@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import domain.repository.PostedDataRepository
 import models.post.PostData
 import models.posted
-import models.posted.{PostedData, PostedImage, PostedText}
+import models.posted.{PostedData, PostedImage}
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -19,11 +19,17 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
         db.localTx { implicit session =>
           val sql =
             sql"""INSERT INTO posted_properties (
+                 | content_id,
                  | content_type,
+                 | room_id,
                  | content,
                  | created_time
                  | ) VALUES (
+                 | (SELECT IFNULL(MAX(tmp.content_id), 0) FROM (
+                 | SELECT content_id FROM posted_properties
+                 | WHERE room_id = ${postData.roomId}) AS tmp) + 1,
                  | ${postData.contentType},
+                 | ${postData.roomId},
                  | ${postData.content},
                  | ${LocalDateTime.now()}
                  | )
@@ -33,7 +39,7 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
       }
     })
 
-  def getLatestPosted(count: Int): Future[List[PostedData]] =
+  def getLatestPosted(count: Int, roomId: String): Future[List[PostedData]] =
     Future.fromTry(Try {
       using(DB(ConnectionPool.borrow())) { db =>
         db.readOnly { implicit session =>
@@ -44,6 +50,7 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
                  | content,
                  | created_time
                  | FROM posted_properties
+                 | WHERE room_id = $roomId
                  | ORDER BY created_time DESC
                  | LIMIT $count
                """.stripMargin

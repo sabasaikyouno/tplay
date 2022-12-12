@@ -1,0 +1,19 @@
+@import models.posted._
+@(roomId: String, postedDataList: List[PostedData])
+
+@main("room") {
+@for(postedData <- postedDataList) {
+    @postedData match {
+        case PostedText(id, text, createdTime) => {<h3>@id @text @createdTime</h3>}
+        case PostedImage(id, img, createdTime) => {<img src="/getImage/@img">}
+    }
+}
+<form action="/post_text?roomId=@roomId" method="post">
+    <input type="text" name="text">
+    <input type="submit">
+</form>
+<form action="/post_image?roomId=@roomId" method="post" enctype="multipart/form-data">
+    <input type="file" name="image">
+    <input type="submit">
+</form>
+}

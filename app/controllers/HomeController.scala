@@ -7,44 +7,46 @@ import javax.inject._
 import play.api._
 import play.api.mvc._
 import models.SendText._
-import domain.repository.PostedDataRepository
+import domain.repository.{PostedDataRepository, RoomDataRepository}
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import akka.stream.scaladsl._
 import models.post.{PostImage, PostText}
+import models.room.RoomData
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class HomeController @Inject()(
   val controllerComponents: ControllerComponents,
-  val postedDataRepository: PostedDataRepository
+  val postedDataRepository: PostedDataRepository,
+  val roomDataRepository: RoomDataRepository
 ) extends BaseController with I18nSupport {
 
   def index = Action.async { implicit request =>
-    postedDataRepository.getLatestPosted(3).map( list =>
+    roomDataRepository.getLatestRoom(3).map( list =>
       Ok(views.html.index(list))
     )
   }
 
-  def postText = Action { implicit request =>
+  def postText(roomId: String) = Action { implicit request =>
     sendTextForm.bindFromRequest.fold(
       errors => {
         Redirect("/")
       },
       sendText => {
-        postedDataRepository.create(PostText(sendText.text))
-        Redirect("/")
+        postedDataRepository.create(PostText(roomId, sendText.text))
+        Redirect(s"/room/$roomId")
       }
     )
   }
 
-  def postImage = Action(parse.multipartFormData) { implicit request =>
+  def postImage(roomId: String) = Action(parse.multipartFormData) { implicit request =>
     request.body.file("image").map { image =>
       val imgPath = s"tmp/img/${UUID.randomUUID() + image.filename}"
       image.ref.moveTo(new File(imgPath))
-      postedDataRepository.create(PostImage(imgPath))
-      Redirect("/")
+      postedDataRepository.create(PostImage(roomId, imgPath))
+      Redirect(s"/room/$roomId")
     }.getOrElse {
       Redirect("/")
     }
@@ -58,5 +60,16 @@ class HomeController @Inject()(
       header = ResponseHeader(200, Map.empty),
       body = HttpEntity.Streamed(source, None, Some("image/png"))
     )
+  }
+
+  def room(roomId: String) = Action.async { implicit request =>
+    postedDataRepository.getLatestPosted(3, roomId).map( list =>
+      Ok(views.html.room(roomId, list))
+    )
+  }
+
+  def createRoom = Action { implicit request =>
+    roomDataRepository.create
+    Redirect("/")
   }
 }
