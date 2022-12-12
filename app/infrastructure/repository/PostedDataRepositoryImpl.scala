@@ -3,7 +3,9 @@ package infrastructure.repository
 import java.time.LocalDateTime
 
 import domain.repository.PostedDataRepository
-import models.{ImageData, PostData, PostedData, TextData}
+import models.post.PostData
+import models.posted
+import models.posted.{PostedData, PostedImage, PostedText}
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -53,13 +55,13 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
   private[this] def resultSetToPostedData(rs: WrappedResultSet): PostedData =
     rs.string("content_type") match {
       case "text" =>
-        TextData(
+        posted.PostedText(
           id = rs.long("content_id"),
           text = rs.string("content"),
           createdTime = rs.localDateTime("created_time")
         )
       case "image" =>
-        ImageData(
+        PostedImage(
           id = rs.long("content_id"),
           img = rs.string("content"),
           createdTime = rs.localDateTime("created_time")

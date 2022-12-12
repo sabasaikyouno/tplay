@@ -1,4 +1,4 @@
-package models
+package models.post
 
 trait PostData {
   val content: String
