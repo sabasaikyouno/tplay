@@ -1,4 +1,4 @@
-package models
+package models.posted
 
 import java.time.LocalDateTime
 
