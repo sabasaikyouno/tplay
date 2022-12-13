@@ -6,13 +6,13 @@ import java.util.UUID
 import javax.inject._
 import play.api._
 import play.api.mvc._
-import models.SendText._
+import models.form.TextForm._
 import domain.repository.{PostedDataRepository, RoomDataRepository, UserDataRepository}
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import akka.stream.scaladsl._
-import models.LoginForm.loginForm
-import models.SignupForm.signupForm
+import models.form.LoginForm.loginForm
+import models.form.SignupForm.signupForm
 import models.post.{PostImage, PostText}
 import play.api.cache.SyncCacheApi
 import utils.UserUtils.passwordHash
@@ -36,7 +36,7 @@ class HomeController @Inject()(
   }
 
   def postText(roomId: String) = UserAction { implicit request =>
-    sendTextForm.bindFromRequest.fold(
+    textForm.bindFromRequest.fold(
       errors => {
         Redirect("/")
       },

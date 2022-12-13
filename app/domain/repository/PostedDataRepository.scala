@@ -2,7 +2,6 @@ package domain.repository
 
 import models.post.PostData
 import models.posted.PostedData
-import models.user.UserData
 
 import scala.concurrent.Future
 
