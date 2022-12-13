@@ -4,7 +4,9 @@ POST    /post_text                  controllers.HomeController.postText(roomId: 
 POST    /post_image                 controllers.HomeController.postImage(roomId: String)
 GET     /getImage/tmp/img/:fileName controllers.HomeController.getImage(fileName)
 GET     /room/:roomId               controllers.HomeController.room(roomId)
-POST    /create_room                 controllers.HomeController.createRoom
+POST    /create_room                controllers.HomeController.createRoom
+POST    /signup                     controllers.HomeController.signup
+POST    /login                      controllers.HomeController.login
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

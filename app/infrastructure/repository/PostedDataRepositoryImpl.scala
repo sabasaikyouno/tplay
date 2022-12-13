@@ -6,6 +6,7 @@ import domain.repository.PostedDataRepository
 import models.post.PostData
 import models.posted
 import models.posted.{PostedData, PostedImage}
+import models.user.UserData
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -22,6 +23,7 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
                  | content_id,
                  | content_type,
                  | room_id,
+                 | user_id,
                  | content,
                  | created_time
                  | ) VALUES (
@@ -30,6 +32,7 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
                  | WHERE room_id = ${postData.roomId}) AS tmp) + 1,
                  | ${postData.contentType},
                  | ${postData.roomId},
+                 | ${postData.user.name},
                  | ${postData.content},
                  | ${LocalDateTime.now()}
                  | )
@@ -45,7 +48,7 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
         db.readOnly { implicit session =>
           val sql =
             sql"""SELECT
-                 | content_id,
+                 | user_id,
                  | content_type,
                  | content,
                  | created_time
@@ -63,13 +66,13 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
     rs.string("content_type") match {
       case "text" =>
         posted.PostedText(
-          id = rs.long("content_id"),
+          user = UserData(rs.string("user_id")),
           text = rs.string("content"),
           createdTime = rs.localDateTime("created_time")
         )
       case "image" =>
         PostedImage(
-          id = rs.long("content_id"),
+          user = UserData(rs.string("user_id")),
           img = rs.string("content"),
           createdTime = rs.localDateTime("created_time")
         )

@@ -4,6 +4,7 @@ import java.util.UUID
 
 import domain.repository.RoomDataRepository
 import models.room.RoomData
+import models.user.UserData
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -11,15 +12,17 @@ import scalikejdbc._
 
 class RoomDataRepositoryImpl extends RoomDataRepository {
 
-  def create: Future[_] =
+  def create(user: UserData): Future[_] =
     Future.fromTry(Try {
       using(DB(ConnectionPool.borrow())) { db =>
         db.localTx { implicit session =>
           val sql =
             sql"""INSERT INTO room_properties (
-                 | room_id
+                 | room_id,
+                 | user_id
                  | ) VALUES (
-                 | ${UUID.randomUUID().toString}
+                 | ${UUID.randomUUID().toString},
+                 | ${user.name}
                  | )
                """.stripMargin
           sql.update().apply()
@@ -44,7 +47,7 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
       }
     })
 
-  def resultSetToRoomData(rs: WrappedResultSet): RoomData =
+  private[this] def resultSetToRoomData(rs: WrappedResultSet): RoomData =
     RoomData(
       id = rs.long("id"),
       roomId = rs.string("room_id")

@@ -1,3 +1,5 @@
 package models.post
 
-case class PostImage(roomId: String, content: String, contentType: String = "image") extends PostData
+import models.user.UserData
+
+case class PostImage(roomId: String, user: UserData, content: String, contentType: String = "image") extends PostData

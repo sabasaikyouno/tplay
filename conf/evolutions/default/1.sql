@@ -6,6 +6,7 @@ create table posted_properties(
     content_id bigint(4) not null,
     content_type varchar(255) not null,
     room_id varchar(255) not null,
+    user_id varchar(255) not null,
     content varchar(255) not null,
     created_time datetime not null
 ) engine=innodb charset=utf8mb4;
@@ -13,7 +14,13 @@ create table posted_properties(
 create table room_properties(
     id bigint(4) not null auto_increment,
     room_id varchar(255) not null,
+    user_id varchar(255) not null,
     primary key (id)
+) engine=innodb charset=utf8mb4;
+
+create table user_properties(
+    user_id varchar(191) not null unique,
+    password varchar(255) not null
 ) engine=innodb charset=utf8mb4;
 
 # --- !Downs
@@ -21,3 +28,5 @@ create table room_properties(
 drop table posted_properties;
 
 drop table room_properties;
+
+drop table user_properties;

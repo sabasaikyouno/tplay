@@ -7,21 +7,27 @@ import javax.inject._
 import play.api._
 import play.api.mvc._
 import models.SendText._
-import domain.repository.{PostedDataRepository, RoomDataRepository}
+import domain.repository.{PostedDataRepository, RoomDataRepository, UserDataRepository}
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import akka.stream.scaladsl._
+import models.LoginForm.loginForm
+import models.SignupForm.signupForm
 import models.post.{PostImage, PostText}
-import models.room.RoomData
+import play.api.cache.SyncCacheApi
+import utils.UserUtils.passwordHash
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
 class HomeController @Inject()(
-  val controllerComponents: ControllerComponents,
+  cc: ControllerComponents,
   val postedDataRepository: PostedDataRepository,
-  val roomDataRepository: RoomDataRepository
-) extends BaseController with I18nSupport {
+  val roomDataRepository: RoomDataRepository,
+  val userDataRepository: UserDataRepository,
+  val cache: SyncCacheApi
+) extends UserLoginController(cc) with I18nSupport {
 
   def index = Action.async { implicit request =>
     roomDataRepository.getLatestRoom(3).map( list =>
@@ -29,30 +35,30 @@ class HomeController @Inject()(
     )
   }
 
-  def postText(roomId: String) = Action { implicit request =>
+  def postText(roomId: String) = UserAction { implicit request =>
     sendTextForm.bindFromRequest.fold(
       errors => {
         Redirect("/")
       },
       sendText => {
-        postedDataRepository.create(PostText(roomId, sendText.text))
+        postedDataRepository.create(PostText(roomId, request.user, sendText.text))
         Redirect(s"/room/$roomId")
       }
     )
   }
 
-  def postImage(roomId: String) = Action(parse.multipartFormData) { implicit request =>
+  def postImage(roomId: String) = UserAction(parse.multipartFormData) { implicit request =>
     request.body.file("image").map { image =>
       val imgPath = s"tmp/img/${UUID.randomUUID() + image.filename}"
       image.ref.moveTo(new File(imgPath))
-      postedDataRepository.create(PostImage(roomId, imgPath))
+      postedDataRepository.create(PostImage(roomId, request.user, imgPath))
       Redirect(s"/room/$roomId")
     }.getOrElse {
       Redirect("/")
     }
   }
 
-  def getImage(fileName: String) = Action { implicit request =>
+  def getImage(fileName: String) = UserAction { implicit request =>
     val file = new File(s"tmp/img/$fileName")
     val source = FileIO.fromPath(file.toPath)
 
@@ -62,14 +68,46 @@ class HomeController @Inject()(
     )
   }
 
-  def room(roomId: String) = Action.async { implicit request =>
+  def room(roomId: String) = UserAction.async { implicit request =>
     postedDataRepository.getLatestPosted(3, roomId).map( list =>
       Ok(views.html.room(roomId, list))
     )
   }
 
-  def createRoom = Action { implicit request =>
-    roomDataRepository.create
+  def createRoom = UserAction { implicit request =>
+    roomDataRepository.create(request.user)
     Redirect("/")
+  }
+
+  def signup = Action { implicit request =>
+    signupForm.bindFromRequest.fold(
+      errors => {
+        Redirect("/")
+      },
+      signup => {
+        userDataRepository.signup(
+          signup.userId,
+          passwordHash(signup.password)
+        )
+        Redirect("/")
+      }
+    )
+  }
+
+  def login = Action.async { implicit request =>
+    loginForm.bindFromRequest.fold(
+      errors => {
+        Future(Redirect("/"))
+      },
+      login => {
+        userDataRepository.login(login.userId, passwordHash(login.password)).map {
+          case Some(user) =>
+            val idCookie = request.cookies.get("id").getOrElse(Cookie("id", UUID.randomUUID().toString))
+            cache.set(idCookie.value, user.name)
+            Redirect("/").withCookies(idCookie)
+          case _ => Redirect("/")
+        }
+      }
+    )
   }
 }

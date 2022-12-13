@@ -1,11 +1,12 @@
 @import models.posted._
+@import models.user._
 @(roomId: String, postedDataList: List[PostedData])
 
 @main("room") {
 @for(postedData <- postedDataList) {
     @postedData match {
-        case PostedText(id, text, createdTime) => {<h3>@id @text @createdTime</h3>}
-        case PostedImage(id, img, createdTime) => {<img src="/getImage/@img">}
+        case PostedText(UserData(id), text, createdTime) => {<h3>@id @text @createdTime</h3>}
+        case PostedImage(UserData(id), img, createdTime) => {<img src="/getImage/@img">}
     }
 }
 <form action="/post_text?roomId=@roomId" method="post">
