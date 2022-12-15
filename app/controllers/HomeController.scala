@@ -70,9 +70,10 @@ class HomeController @Inject()(
   }
 
   def room(roomId: String) = UserAction.async { implicit request =>
-    postedDataRepository.getLatestPosted(3, roomId).map( list =>
-      Ok(views.html.room(roomId, list))
-    )
+    for {
+      postedList <- postedDataRepository.getLatestPosted(3, roomId)
+      tags <- roomDataRepository.getTags(roomId)
+    } yield Ok(views.html.room(roomId, postedList, tags))
   }
 
   def createRoom = UserAction { implicit request =>

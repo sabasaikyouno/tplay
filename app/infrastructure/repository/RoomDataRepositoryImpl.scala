@@ -48,6 +48,21 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
       }
     })
 
+  def getTags(roomId: String): Future[List[String]] =
+    Future.fromTry(Try{
+      using(DB(ConnectionPool.borrow())) { db =>
+        db.readOnly { implicit session =>
+          val sql =
+            sql"""SELECT
+                 | tag
+                 | FROM tag_properties
+                 | WHERE room_id = $roomId
+               """.stripMargin
+          sql.map(_.string("tag")).list().apply()
+        }
+      }
+    })
+
   def getLatestRoom(count: Int): Future[List[RoomData]] =
     Future.fromTry(Try {
       using(DB(ConnectionPool.borrow())) { db =>

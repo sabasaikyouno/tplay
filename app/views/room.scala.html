@@ -1,6 +1,6 @@
 @import models.posted._
 @import models.user._
-@(roomId: String, postedDataList: List[PostedData])
+@(roomId: String, postedDataList: List[PostedData], tags: List[String])
 
 @main("room") {
 @for(postedData <- postedDataList) {
@@ -17,4 +17,5 @@
     <input type="file" name="image">
     <input type="submit">
 </form>
+<h4>@tags.mkString(" ")</h4>
 }
