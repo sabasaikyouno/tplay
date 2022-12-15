@@ -12,7 +12,7 @@ import scalikejdbc._
 
 class RoomDataRepositoryImpl extends RoomDataRepository {
 
-  def create(user: UserData): Future[_] =
+  def create(roomId: String, user: UserData): Future[_] =
     Future.fromTry(Try {
       using(DB(ConnectionPool.borrow())) { db =>
         db.localTx { implicit session =>
@@ -21,11 +21,29 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
                  | room_id,
                  | user_id
                  | ) VALUES (
-                 | ${UUID.randomUUID().toString},
+                 | $roomId,
                  | ${user.name}
                  | )
                """.stripMargin
           sql.update().apply()
+        }
+      }
+    })
+
+  def createTag(roomId: String, tag: Array[String]): Future[_] =
+    Future.fromTry(Try{
+      using(DB(ConnectionPool.borrow())) { db =>
+        db.localTx { implicit session =>
+          tag.map { tag =>
+            sql"""INSERT INTO tag_properties (
+                 | room_id,
+                 | tag
+                 | ) VALUES (
+                 | $roomId,
+                 | $tag
+                 | )
+               """.stripMargin
+          }.foreach(_.update().apply())
         }
       }
     })

@@ -12,6 +12,7 @@ import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import akka.stream.scaladsl._
 import models.form.LoginForm.loginForm
+import models.form.RoomForm.roomForm
 import models.form.SignupForm.signupForm
 import models.post.{PostImage, PostText}
 import play.api.cache.SyncCacheApi
@@ -75,8 +76,17 @@ class HomeController @Inject()(
   }
 
   def createRoom = UserAction { implicit request =>
-    roomDataRepository.create(request.user)
-    Redirect("/")
+    roomForm.bindFromRequest.fold(
+      errors => {
+        Redirect("/")
+      },
+      tagForm => {
+        val roomId = UUID.randomUUID().toString
+        roomDataRepository.create(roomId, request.user)
+        roomDataRepository.createTag(roomId, tagForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
+        Redirect("/")
+      }
+    )
   }
 
   def signup = Action { implicit request =>
