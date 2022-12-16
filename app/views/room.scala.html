@@ -6,7 +6,7 @@
 @for(postedData <- postedDataList) {
     @postedData match {
         case PostedText(UserData(id), text, createdTime) => {<h3>@id @text @createdTime</h3>}
-        case PostedImage(UserData(id), img, createdTime) => {<img src="/getImage/@img">}
+        case PostedImage(UserData(id), img, createdTime) => {<img src="/getImage/@img?roomId=@roomId">}
     }
 }
 <form action="/post_text?roomId=@roomId" method="post">

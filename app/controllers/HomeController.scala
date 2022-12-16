@@ -25,10 +25,10 @@ import scala.concurrent.Future
 class HomeController @Inject()(
   cc: ControllerComponents,
   val postedDataRepository: PostedDataRepository,
-  val roomDataRepository: RoomDataRepository,
+  roomDataRepository: RoomDataRepository,
   val userDataRepository: UserDataRepository,
   val cache: SyncCacheApi
-) extends UserLoginController(cc) with I18nSupport {
+) extends UserLoginController(cc, roomDataRepository) with I18nSupport {
 
   def index = Action.async { implicit request =>
     roomDataRepository.getLatestRoom(3).map( list =>
@@ -36,7 +36,7 @@ class HomeController @Inject()(
     )
   }
 
-  def postText(roomId: String) = UserAction { implicit request =>
+  def postText(roomId: String) = RoomAction(roomId) { implicit request =>
     textForm.bindFromRequest.fold(
       errors => {
         Redirect("/")
@@ -48,7 +48,7 @@ class HomeController @Inject()(
     )
   }
 
-  def postImage(roomId: String) = UserAction(parse.multipartFormData) { implicit request =>
+  def postImage(roomId: String) = RoomAction(roomId)(parse.multipartFormData) { implicit request =>
     request.body.file("image").map { image =>
       val imgPath = s"tmp/img/${UUID.randomUUID() + image.filename}"
       image.ref.moveTo(new File(imgPath))
@@ -59,7 +59,7 @@ class HomeController @Inject()(
     }
   }
 
-  def getImage(fileName: String) = UserAction { implicit request =>
+  def getImage(fileName: String, roomId: String) = RoomAction(roomId) { implicit request =>
     val file = new File(s"tmp/img/$fileName")
     val source = FileIO.fromPath(file.toPath)
 
@@ -69,7 +69,7 @@ class HomeController @Inject()(
     )
   }
 
-  def room(roomId: String) = UserAction.async { implicit request =>
+  def room(roomId: String) = RoomAction(roomId).async { implicit request =>
     for {
       postedList <- postedDataRepository.getLatestPosted(3, roomId)
       tags <- roomDataRepository.getTags(roomId)
@@ -81,10 +81,13 @@ class HomeController @Inject()(
       errors => {
         Redirect("/")
       },
-      tagForm => {
+      roomForm => {
         val roomId = UUID.randomUUID().toString
         roomDataRepository.create(roomId, request.user)
-        roomDataRepository.createTag(roomId, tagForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
+        roomDataRepository.createTag(roomId, roomForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
+        roomForm.authUser match {
+          case Some(user) => roomDataRepository.createAuthUser(roomId, user.split(" "))
+        }
         Redirect("/")
       }
     )

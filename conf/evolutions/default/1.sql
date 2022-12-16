@@ -28,6 +28,11 @@ create table tag_properties(
     tag varchar(255) not null
 ) engine=innodb charset=utf8mb4;
 
+create table room_auth_properties (
+    room_id varchar(255) not null,
+    user_id varchar(191) not null
+) engine=innodb charset=utf8mb4;
+
 # --- !Downs
 
 drop table posted_properties;

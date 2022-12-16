@@ -1,7 +1,5 @@
 package infrastructure.repository
 
-import java.util.UUID
-
 import domain.repository.RoomDataRepository
 import models.room.RoomData
 import models.user.UserData
@@ -48,6 +46,24 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
       }
     })
 
+  def createAuthUser(roomId: String, users: Array[String]): Future[_] =
+    Future.fromTry(Try{
+      using(DB(ConnectionPool.borrow())) { db =>
+        db.localTx { implicit session =>
+          users.map { user =>
+            sql"""INSERT INTO room_auth_properties (
+                 | room_id,
+                 | user_id
+                 | ) VALUES (
+                 | $roomId,
+                 | $user
+                 | )
+               """.stripMargin
+          }.foreach(_.update().apply())
+        }
+      }
+    })
+
   def getTags(roomId: String): Future[List[String]] =
     Future.fromTry(Try{
       using(DB(ConnectionPool.borrow())) { db =>
@@ -59,6 +75,21 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
                  | WHERE room_id = $roomId
                """.stripMargin
           sql.map(_.string("tag")).list().apply()
+        }
+      }
+    })
+
+  def getAuthUsers(roomId: String): Future[List[String]] =
+    Future.fromTry(Try {
+      using(DB(ConnectionPool.borrow())) { db =>
+        db.readOnly { implicit session =>
+          val sql =
+            sql"""SELECT
+                 | user_id
+                 | FROM room_auth_properties
+                 | WHERE room_id = $roomId
+               """.stripMargin
+          sql.map(_.string("user_id")).list().apply()
         }
       }
     })
