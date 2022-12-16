@@ -87,6 +87,7 @@ class HomeController @Inject()(
         roomDataRepository.createTag(roomId, roomForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
         roomForm.authUser match {
           case Some(user) => roomDataRepository.createAuthUser(roomId, user.split(" "))
+          case _ => ()
         }
         Redirect("/")
       }
