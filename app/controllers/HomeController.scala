@@ -85,10 +85,7 @@ class HomeController @Inject()(
         val roomId = UUID.randomUUID().toString
         roomDataRepository.create(roomId, request.user)
         roomDataRepository.createTag(roomId, roomForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
-        roomForm.authUser match {
-          case Some(user) => roomDataRepository.createAuthUser(roomId, user.split(" "))
-          case _ => ()
-        }
+        roomForm.authUser.foreach(user => roomDataRepository.createAuthUser(roomId, user.split(" ")))
         Redirect("/")
       }
     )
