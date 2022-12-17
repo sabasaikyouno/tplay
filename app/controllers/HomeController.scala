@@ -30,10 +30,14 @@ class HomeController @Inject()(
   val cache: SyncCacheApi
 ) extends UserLoginController(cc, roomDataRepository) with I18nSupport {
 
-  def index = Action.async { implicit request =>
+  def index = UserAction.async { implicit request =>
     roomDataRepository.getLatestRoom(3).map( list =>
       Ok(views.html.index(list))
     )
+  }
+
+  def loginView = Action { implicit request =>
+    Ok(views.html.login())
   }
 
   def postText(roomId: String) = RoomAction(roomId) { implicit request =>

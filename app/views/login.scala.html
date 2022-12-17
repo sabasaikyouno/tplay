@@ -1,0 +1,14 @@
+@()
+
+@main("login") {
+<form action="/login" method="post">
+    <input type="text" name="userId" placeholder="user id">
+    <input type="password" name="password" placeholder="password">
+    <input type="submit" value="login">
+</form>
+<form action="/signup" method="post">
+    <input type="text" name="userId" placeholder="user id">
+    <input type="password" name="password" placeholder="password">
+    <input type="submit" value="signup">
+</form>
+}
