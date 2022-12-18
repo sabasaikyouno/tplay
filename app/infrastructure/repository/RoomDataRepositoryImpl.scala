@@ -94,7 +94,7 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
       }
     })
 
-  def getLatestRoom(count: Int): Future[List[RoomData]] =
+  def getLatestRoom(limit: Int): Future[List[RoomData]] =
     Future.fromTry(Try {
       using(DB(ConnectionPool.borrow())) { db =>
         db.readOnly { implicit session =>
@@ -104,7 +104,27 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
                  | room_id
                  | FROM room_properties
                  | ORDER BY id DESC
-                 | LIMIT $count
+                 | LIMIT $limit
+               """.stripMargin
+          sql.map(resultSetToRoomData).list().apply()
+        }
+      }
+    })
+
+  def getRoomTagFilter(tag: String, limit: Int): Future[List[RoomData]] =
+    Future.fromTry(Try {
+      using(DB(ConnectionPool.borrow())) { db =>
+        db.readOnly { implicit session =>
+          val sql =
+            sql"""SELECT
+                 | room_properties.id,
+                 | room_properties.room_id
+                 | FROM room_properties
+                 | JOIN tag_properties
+                 | ON room_properties.room_id = tag_properties.room_id
+                 | AND tag_properties.tag = $tag
+                 | ORDER BY room_properties.id DESC
+                 | LIMIT $limit
                """.stripMargin
           sql.map(resultSetToRoomData).list().apply()
         }

@@ -28,7 +28,7 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
           cache.get[String](c.value).map( v =>
             new UserRequest(UserData(v), request)
           )
-        ).toRight(Redirect("/v/login"))
+        ).toRight(Redirect("/login_form"))
       )
     }
   }

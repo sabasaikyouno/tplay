@@ -16,5 +16,7 @@ trait RoomDataRepository {
 
   def getAuthUsers(roomId: String): Future[List[String]]
 
-  def getLatestRoom(count: Int): Future[List[RoomData]]
+  def getLatestRoom(limit: Int): Future[List[RoomData]]
+
+  def getRoomTagFilter(tag: String, limit: Int): Future[List[RoomData]]
 }
