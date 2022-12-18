@@ -1,5 +1,5 @@
 
-GET     /                           controllers.HomeController.index(tag: Option[String])
+GET     /                           controllers.HomeController.index(tag: Option[String], order: Option[String])
 POST    /post_text                  controllers.HomeController.postText(roomId: String)
 POST    /post_image                 controllers.HomeController.postImage(roomId: String)
 GET     /getImage/tmp/img/:fileName controllers.HomeController.getImage(fileName, roomId: String)

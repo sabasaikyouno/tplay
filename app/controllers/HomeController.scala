@@ -16,6 +16,7 @@ import models.form.RoomForm.roomForm
 import models.form.SignupForm.signupForm
 import models.post.{PostImage, PostText}
 import play.api.cache.SyncCacheApi
+import utils.RoomUtils.makeOrder
 import utils.UserUtils.passwordHash
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -30,14 +31,15 @@ class HomeController @Inject()(
   val cache: SyncCacheApi
 ) extends UserLoginController(cc, roomDataRepository) with I18nSupport {
 
-  def index(tag: Option[String]) = UserAction.async { implicit request =>
-    tag match {
+  def index(tagOpt: Option[String], orderOpt: Option[String]) = UserAction.async { implicit request =>
+    val order = makeOrder(orderOpt)
+    tagOpt match {
       case Some(tag) =>
-        roomDataRepository.getRoomTagFilter(tag, 3).map( list =>
+        roomDataRepository.getRoomTagFilter(tag, 3, order).map( list =>
           Ok(views.html.index(list))
         )
       case _ =>
-        roomDataRepository.getLatestRoom(3).map( list =>
+        roomDataRepository.getLatestRoom(3, order).map( list =>
           Ok(views.html.index(list))
         )
     }
@@ -84,6 +86,7 @@ class HomeController @Inject()(
     for {
       postedList <- postedDataRepository.getLatestPosted(3, roomId)
       tags <- roomDataRepository.getTags(roomId)
+      _ <- roomDataRepository.roomViewCount(roomId)
     } yield Ok(views.html.room(roomId, postedList, tags))
   }
 
@@ -96,7 +99,9 @@ class HomeController @Inject()(
         val roomId = UUID.randomUUID().toString
         roomDataRepository.create(roomId, request.user)
         roomDataRepository.createTag(roomId, roomForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
-        roomForm.authUser.foreach(user => roomDataRepository.createAuthUser(roomId, user.split(" ")))
+        roomForm.authUser.foreach(user =>
+          roomDataRepository.createAuthUser(roomId, user.split(" "))
+        )
         Redirect("/")
       }
     )

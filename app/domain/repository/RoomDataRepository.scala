@@ -2,6 +2,7 @@ package domain.repository
 
 import models.room.RoomData
 import models.user.UserData
+import scalikejdbc.interpolation.SQLSyntax
 
 import scala.concurrent.Future
 
@@ -12,11 +13,13 @@ trait RoomDataRepository {
 
   def createAuthUser(roomId: String, users: Array[String]): Future[_]
 
+  def roomViewCount(roomId: String): Future[_]
+
   def getTags(roomId: String): Future[List[String]]
 
   def getAuthUsers(roomId: String): Future[List[String]]
 
-  def getLatestRoom(limit: Int): Future[List[RoomData]]
+  def getLatestRoom(limit: Int, order: SQLSyntax): Future[List[RoomData]]
 
-  def getRoomTagFilter(tag: String, limit: Int): Future[List[RoomData]]
+  def getRoomTagFilter(tag: String, limit: Int, order: SQLSyntax): Future[List[RoomData]]
 }
