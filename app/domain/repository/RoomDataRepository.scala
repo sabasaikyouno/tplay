@@ -7,7 +7,7 @@ import scalikejdbc.interpolation.SQLSyntax
 import scala.concurrent.Future
 
 trait RoomDataRepository {
-  def create(roomId: String, user: UserData): Future[_]
+  def create(roomId: String, user: UserData, contentType: String): Future[_]
 
   def createTag(roomId: String, tag: Array[String]): Future[_]
 
@@ -22,4 +22,6 @@ trait RoomDataRepository {
   def getLatestRoom(limit: Int, order: SQLSyntax): Future[List[RoomData]]
 
   def getRoomTagFilter(tag: String, limit: Int, order: SQLSyntax): Future[List[RoomData]]
+
+  def getRoomContentType(roomId: String): Future[String]
 }

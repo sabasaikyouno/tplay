@@ -17,7 +17,10 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
     Action andThen UserActionRefiner
 
   def RoomAction(roomId: String) =
-    Action andThen UserActionRefiner andThen RoomFilter(roomId)
+    UserAction andThen RoomFilter(roomId)
+
+  def PostAction(roomId: String, postContentType: String) =
+    RoomAction(roomId) andThen PostFilter(roomId, postContentType)
 
   def UserActionRefiner = new ActionRefiner[Request, UserRequest] {
     override protected def executionContext: ExecutionContext = cc.executionContext
@@ -40,6 +43,18 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
       cache.getOrElseUpdate(roomId)(roomDataRepository.getAuthUsers(roomId).value.get.getOrElse(List(""))) match {
         case userList if userList.nonEmpty && !userList.contains(request.user.name) =>
           Some(Redirect("/"))
+        case _ => None
+      }
+    }
+  }
+
+  def PostFilter(roomId: String, postContentType: String) = new ActionFilter[UserRequest] {
+    override protected def executionContext: ExecutionContext = cc.executionContext
+
+    def filter[A](request: UserRequest[A]) = Future.successful {
+      cache.getOrElseUpdate(roomId+"contentType")(roomDataRepository.getRoomContentType(roomId).value.get.get) match {
+        case contentType if !contentType.contains(postContentType) =>
+          Some(Redirect(s"/room/$roomId"))
         case _ => None
       }
     }

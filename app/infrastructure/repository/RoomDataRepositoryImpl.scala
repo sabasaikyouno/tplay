@@ -10,7 +10,7 @@ import scalikejdbc._
 
 class RoomDataRepositoryImpl extends RoomDataRepository {
 
-  def create(roomId: String, user: UserData): Future[_] =
+  def create(roomId: String, user: UserData, contentType: String): Future[_] =
     Future.fromTry(Try {
       using(DB(ConnectionPool.borrow())) { db =>
         db.localTx { implicit session =>
@@ -18,11 +18,13 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
             sql"""INSERT INTO room_properties (
                  | room_id,
                  | user_id,
-                 | view_count
+                 | view_count,
+                 | content_type
                  | ) VALUES (
                  | $roomId,
                  | ${user.name},
-                 | 0
+                 | 0,
+                 | $contentType
                  | )
                """.stripMargin
           sql.update().apply()
@@ -143,6 +145,21 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
                  | LIMIT $limit
                """.stripMargin
           sql.map(resultSetToRoomData).list().apply()
+        }
+      }
+    })
+
+  def getRoomContentType(roomId: String): Future[String] =
+    Future.fromTry(Try{
+      using(DB(ConnectionPool.borrow())) { db =>
+        db.readOnly { implicit session =>
+          val sql =
+            sql"""SELECT
+                 | content_type
+                 | FROM room_properties
+                 | WHERE room_id = $roomId
+               """.stripMargin
+          sql.map(_.string("content_type")).single().apply().get
         }
       }
     })

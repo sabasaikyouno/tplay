@@ -49,7 +49,7 @@ class HomeController @Inject()(
     Ok(views.html.login())
   }
 
-  def postText(roomId: String) = RoomAction(roomId) { implicit request =>
+  def postText(roomId: String) = PostAction(roomId, "text") { implicit request =>
     textForm.bindFromRequest.fold(
       errors => {
         Redirect("/")
@@ -61,7 +61,7 @@ class HomeController @Inject()(
     )
   }
 
-  def postImage(roomId: String) = RoomAction(roomId)(parse.multipartFormData) { implicit request =>
+  def postImage(roomId: String) = PostAction(roomId, "image")(parse.multipartFormData) { implicit request =>
     request.body.file("image").map { image =>
       val imgPath = s"tmp/img/${UUID.randomUUID() + image.filename}"
       image.ref.moveTo(new File(imgPath))
@@ -97,7 +97,7 @@ class HomeController @Inject()(
       },
       roomForm => {
         val roomId = UUID.randomUUID().toString
-        roomDataRepository.create(roomId, request.user)
+        roomDataRepository.create(roomId, request.user, roomForm.contentType.getOrElse("text/image"))
         roomDataRepository.createTag(roomId, roomForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
         roomForm.authUser.foreach(user =>
           roomDataRepository.createAuthUser(roomId, user.split(" "))
