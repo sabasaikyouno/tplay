@@ -45,3 +45,5 @@ drop table room_properties;
 drop table user_properties;
 
 drop table tag_properties;
+
+drop table room_auth_properties;
