@@ -1,3 +1,3 @@
 package models.room
 
-case class RoomData(id: Long, roomId: String)
+case class RoomData(id: Long, roomId: String, title: String)

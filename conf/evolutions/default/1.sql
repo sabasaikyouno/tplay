@@ -15,6 +15,7 @@ create table room_properties(
     id bigint(4) not null auto_increment,
     room_id varchar(255) not null,
     user_id varchar(255) not null,
+    title varchar(255) not null,
     view_count int(4) not null,
     content_type varchar(255) not null,
     primary key (id)

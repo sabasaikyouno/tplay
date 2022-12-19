@@ -10,7 +10,7 @@ import scalikejdbc._
 
 class RoomDataRepositoryImpl extends RoomDataRepository {
 
-  def create(roomId: String, user: UserData, contentType: String): Future[_] =
+  def create(roomId: String, user: UserData, title: String, contentType: String): Future[_] =
     Future.fromTry(Try {
       using(DB(ConnectionPool.borrow())) { db =>
         db.localTx { implicit session =>
@@ -18,11 +18,13 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
             sql"""INSERT INTO room_properties (
                  | room_id,
                  | user_id,
+                 | title,
                  | view_count,
                  | content_type
                  | ) VALUES (
                  | $roomId,
                  | ${user.name},
+                 | $title,
                  | 0,
                  | $contentType
                  | )
@@ -119,7 +121,8 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
           val sql =
             sql"""SELECT
                  | id,
-                 | room_id
+                 | room_id,
+                 | title
                  | FROM room_properties
                  | ORDER BY $order DESC
                  | LIMIT $limit
@@ -136,7 +139,8 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
           val sql =
             sql"""SELECT
                  | room_properties.id,
-                 | room_properties.room_id
+                 | room_properties.room_id,
+                 | room_properties.title
                  | FROM room_properties
                  | JOIN tag_properties
                  | ON room_properties.room_id = tag_properties.room_id
@@ -164,9 +168,27 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
       }
     })
 
+  def getOneRoom(roomId: String): Future[RoomData] =
+    Future.fromTry(Try{
+      using(DB(ConnectionPool.borrow())) { db =>
+        db.readOnly { implicit session =>
+          val sql =
+            sql"""SELECT
+                 | id,
+                 | room_id,
+                 | title
+                 | FROM room_properties
+                 | WHERE room_id = $roomId
+               """.stripMargin
+          sql.map(resultSetToRoomData).single().apply().get
+        }
+      }
+    })
+
   private[this] def resultSetToRoomData(rs: WrappedResultSet): RoomData =
     RoomData(
       id = rs.long("id"),
-      roomId = rs.string("room_id")
+      roomId = rs.string("room_id"),
+      title = rs.string("title")
     )
 }

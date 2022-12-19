@@ -85,19 +85,20 @@ class HomeController @Inject()(
   def room(roomId: String) = RoomAction(roomId).async { implicit request =>
     for {
       postedList <- postedDataRepository.getLatestPosted(3, roomId)
+      roomData <- roomDataRepository.getOneRoom(roomId)
       tags <- roomDataRepository.getTags(roomId)
       _ <- roomDataRepository.roomViewCount(roomId)
-    } yield Ok(views.html.room(roomId, postedList, tags))
+    } yield Ok(views.html.room(roomData, postedList, tags))
   }
 
   def createRoom = UserAction { implicit request =>
     roomForm.bindFromRequest.fold(
       errors => {
-        Redirect("/")
+        NotFound(errors.toString)
       },
       roomForm => {
         val roomId = UUID.randomUUID().toString
-        roomDataRepository.create(roomId, request.user, roomForm.contentType.getOrElse("text/image"))
+        roomDataRepository.create(roomId, request.user, roomForm.title.getOrElse("noTitle"), roomForm.contentType.getOrElse("text/image"))
         roomDataRepository.createTag(roomId, roomForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
         roomForm.authUser.foreach(user =>
           roomDataRepository.createAuthUser(roomId, user.split(" "))
