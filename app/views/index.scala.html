@@ -1,10 +1,13 @@
 @import models.room._
-@(roomDataList: List[RoomData])
+@(roomDataList: List[RoomData], page: Int, tag: String, order: String)
 
 @main("home") {
 @for(roomData <- roomDataList) {
     <button onclick="location.href='/room/@roomData.roomId'">@roomData.id @roomData.title</button>
 }
+
+<button onclick="location.href='/?page=@{page/3-1}&tag=@tag&order=@order'">pre</button>
+<button onclick="location.href='/?page=@{page/3+1}&tag=@tag&order=@order'">next</button>
 
 <form action="/create_room" method="post">
     <input type="text" name="title" placeholder="title">

@@ -19,9 +19,9 @@ trait RoomDataRepository {
 
   def getAuthUsers(roomId: String): Future[List[String]]
 
-  def getLatestRoom(limit: Int, order: SQLSyntax): Future[List[RoomData]]
+  def getLatestRoom(page: Int, limit: Int, order: SQLSyntax): Future[List[RoomData]]
 
-  def getRoomTagFilter(tag: String, limit: Int, order: SQLSyntax): Future[List[RoomData]]
+  def getRoomTagFilter(page: Int, tag: String, limit: Int, order: SQLSyntax): Future[List[RoomData]]
 
   def getRoomContentType(roomId: String): Future[String]
 

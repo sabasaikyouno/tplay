@@ -31,18 +31,17 @@ class HomeController @Inject()(
   val cache: SyncCacheApi
 ) extends UserLoginController(cc, roomDataRepository) with I18nSupport {
 
-  def index(tagOpt: Option[String], orderOpt: Option[String]) = UserAction.async { implicit request =>
-    val order = makeOrder(orderOpt)
-    tagOpt match {
-      case Some(tag) =>
-        roomDataRepository.getRoomTagFilter(tag, 3, order).map( list =>
-          Ok(views.html.index(list))
-        )
-      case _ =>
-        roomDataRepository.getLatestRoom(3, order).map( list =>
-          Ok(views.html.index(list))
-        )
-    }
+  def index(pageOpt: Option[Int], tagOpt: Option[String], orderOpt: Option[String]) = UserAction.async { implicit request =>
+    val order = makeOrder(orderOpt.filter(_ != ""))
+    val limit = 3
+    val page = pageOpt.filter(_ >= 0).getOrElse(0) * limit
+    val roomDataList = tagOpt.filter(_ != "").fold(roomDataRepository.getLatestRoom(page, limit, order))(
+      roomDataRepository.getRoomTagFilter(page, _, limit, order)
+    )
+
+    roomDataList.map( list =>
+      Ok(views.html.index(list, page, tagOpt.getOrElse(""), orderOpt.getOrElse("")))
+    )
   }
 
   def loginFormView = Action { implicit request =>
@@ -129,13 +128,11 @@ class HomeController @Inject()(
         Future(Redirect("/"))
       },
       login => {
-        userDataRepository.login(login.userId, passwordHash(login.password)).map {
-          case Some(user) =>
-            val idCookie = request.cookies.get("id").getOrElse(Cookie("id", UUID.randomUUID().toString))
-            cache.set(idCookie.value, user.name)
-            Redirect("/").withCookies(idCookie)
-          case _ => Redirect("/")
-        }
+        userDataRepository.login(login.userId, passwordHash(login.password)).map(_.fold(Redirect("/")){ user =>
+          val idCookie = request.cookies.get("id").getOrElse(Cookie("id", UUID.randomUUID().toString))
+          cache.set(idCookie.value, user.name)
+          Redirect("/").withCookies(idCookie)
+        })
       }
     )
   }
