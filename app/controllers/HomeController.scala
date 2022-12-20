@@ -123,10 +123,10 @@ class HomeController @Inject()(
   def login = Action.async { implicit request =>
     loginForm.bindFromRequest.fold(
       errors => {
-        Future(Redirect("/"))
+        Future(Redirect("/login_form"))
       },
       login => {
-        userDataRepository.login(login.userId, passwordHash(login.password)).map(_.fold(Redirect("/")){ user =>
+        userDataRepository.login(login.userId, passwordHash(login.password)).map(_.fold(Redirect("/login_form")){ user =>
           val idCookie = request.cookies.get("id").getOrElse(Cookie("id", UUID.randomUUID().toString))
           cache.set(idCookie.value, user.name)
           Redirect("/").withCookies(idCookie)
