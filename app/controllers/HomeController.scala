@@ -111,14 +111,14 @@ class HomeController @Inject()(
   def signup = Action { implicit request =>
     signupForm.bindFromRequest.fold(
       errors => {
-        Redirect("/")
+        Redirect("/login_form")
       },
       signup => {
         userDataRepository.signup(
           signup.userId,
           passwordHash(signup.password)
         )
-        Redirect("/")
+        Redirect("/login_form")
       }
     )
   }

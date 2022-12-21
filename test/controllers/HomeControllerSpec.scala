@@ -15,7 +15,7 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
       val home = route(app, request).get
 
       status(home) mustBe 303
-      redirectLocation(home) === Some("/login_form")
+      redirectLocation(home) mustBe Some("/login_form")
     }
 
     "login_form" in {
@@ -29,26 +29,26 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
       val home = route(app, FakeRequest(POST, "/signup").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get
 
       status(home) mustBe 303
-      redirectLocation(home) === Some("/login_form")
+      redirectLocation(home) mustBe Some("/login_form")
     }
 
     "login成功した場合、homeにリダイレクトする" in {
-      val home = route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get
+      val login = route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get
 
-      status(home) mustBe 303
-      redirectLocation(home) === Some("/")
+      status(login) mustBe 303
+      redirectLocation(login) mustBe Some("/")
     }
 
     "login失敗した場合、login_formにリダイレクトする" in {
       val login = route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "b", "password" -> "b")).get
 
       status(login) mustBe 303
-      redirectLocation(login) === Some("/login_form")
+      redirectLocation(login) mustBe Some("/login_form")
     }
 
     "ログインしているときのhome" in {
-      val loginHome = route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "b", "password" -> "b")).get
-      val home = route(app, FakeRequest(GET, "/").withCookies(cookies(loginHome).get("id").get)).get
+      val login = route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get
+      val home = route(app, FakeRequest(GET, "/").withCookies(cookies(login).get("id").get)).get
 
       status(home) mustBe 200
     }
