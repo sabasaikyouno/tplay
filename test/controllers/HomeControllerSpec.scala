@@ -53,4 +53,36 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
       status(home) mustBe 200
     }
   }
+
+  "Room Test" should {
+
+    "create roomパラメーターなし" in {
+      val loginCookie = cookies(route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get).get("id").get
+      val createRoom = route(app, FakeRequest(POST, "/create_room").withCookies(loginCookie)).get
+
+      status(createRoom) mustBe 303
+      redirectLocation(createRoom) mustBe Some("/")
+    }
+
+    "create room パラメーターあり" in {
+      val loginCookie = cookies(route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get).get("id").get
+      val createRoom = route(app, FakeRequest(POST, "/create_room").withCookies(loginCookie)
+        .withFormUrlEncodedBody(
+          "title" -> "test",
+          "tag" -> "test test2",
+          "authUser" -> "a",
+          "contentType" -> "text/image"
+        )).get
+
+      status(createRoom) mustBe 303
+      redirectLocation(createRoom) mustBe Some("/")
+    }
+
+    "create room ログインしないと作れない" in {
+      val createRoom = route(app, FakeRequest(POST, "/create_room")).get
+
+      status(createRoom) mustBe 303
+      redirectLocation(createRoom) mustBe Some("/login_form")
+    }
+  }
 }
