@@ -79,13 +79,16 @@ class HomeController @Inject()(
     )
   }
 
-  def room(roomId: String) = RoomAction(roomId).async { implicit request =>
+  def room(roomId: String, pageOpt: Option[Int]) = RoomAction(roomId).async { implicit request =>
+    val limit = 3
+    val page = pageOpt.filter(_ >= 0).getOrElse(0) * limit
+
     for {
-      postedList <- postedDataRepository.getLatestPosted(3, roomId)
+      postedList <- postedDataRepository.getLatestPosted(roomId, limit, page)
       roomData <- roomDataRepository.getOneRoom(roomId)
       tags <- roomDataRepository.getTags(roomId)
       _ <- roomDataRepository.roomViewCount(roomId)
-    } yield Ok(views.html.room(roomData, postedList, tags))
+    } yield Ok(views.html.room(roomData, postedList, tags, page))
   }
 
   def createRoom = UserAction { implicit request =>

@@ -8,5 +8,5 @@ import scala.concurrent.Future
 trait PostedDataRepository {
   def create(postData: PostData): Future[_]
 
-  def getLatestPosted(count: Int, roomId: String): Future[List[PostedData]]
+  def getLatestPosted(roomId: String, limit: Int, page: Int): Future[List[PostedData]]
 }

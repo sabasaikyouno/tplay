@@ -42,7 +42,7 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
       }
     })
 
-  def getLatestPosted(count: Int, roomId: String): Future[List[PostedData]] =
+  def getLatestPosted(roomId: String, limit: Int, page: Int): Future[List[PostedData]] =
     Future.fromTry(Try {
       using(DB(ConnectionPool.borrow())) { db =>
         db.readOnly { implicit session =>
@@ -55,7 +55,7 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
                  | FROM posted_properties
                  | WHERE room_id = $roomId
                  | ORDER BY created_time DESC
-                 | LIMIT $count
+                 | LIMIT $page, $limit
                """.stripMargin
           sql.map(resultSetToPostedData).list().apply()
         }

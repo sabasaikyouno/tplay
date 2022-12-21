@@ -1,7 +1,7 @@
 @import models.posted._
 @import models.user._
 @import models.room._
-@(roomData: RoomData, postedDataList: List[PostedData], tags: List[String])
+@(roomData: RoomData, postedDataList: List[PostedData], tags: List[String], page: Int)
 
 @main(roomData.title) {
 @for(postedData <- postedDataList) {
@@ -19,4 +19,7 @@
     <input type="submit">
 </form>
 <h4>@tags.mkString(" ")</h4>
+
+<button onclick="location.href='/room/@roomData.roomId?page=@{page/3 - 1}'">next</button>
+<button onclick="location.href='/room/@roomData.roomId?page=@{page/3 + 1}'">pre</button>
 }
