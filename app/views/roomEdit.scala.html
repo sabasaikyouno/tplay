@@ -1,0 +1,12 @@
+@import models.room._
+@(roomId: String, roomData: RoomData, tags: String, authUsers: String)
+
+@main("room edit") {
+<form action="/room/@roomId/update" method="post">
+    <input type="text" name="title" value="@roomData.title" placeholder="title">
+    <input type="text" name="tag" value="@tags" placeholder="tags">
+    <input type="text" name="authUser" value="@authUsers" placeholder="auth users">
+    <input type="text" name="contentType" value="@roomData.contentType" placeholder="content type">
+    <input type="submit" value="update room">
+</form>
+}

@@ -76,10 +76,10 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
   }
 
   private def getRoom(roomId: String) =
-    cache.get(roomId).fold(roomDataRepository.getOneRoom(roomId))(Future(_))
+    cache.get[RoomData](roomId).fold(roomDataRepository.getOneRoom(roomId))(v => Future(Some(v)))
 
   private def getAuthUsers(roomId: String) =
-    cache.get(roomId+"authUsers").fold(roomDataRepository.getAuthUsers(roomId))(Future(_))
+    cache.get[List[String]](roomId+"authUsers").fold(roomDataRepository.getAuthUsers(roomId))(Future(_))
 
   // 値がNoneの場合セットしない。
   private def setCache[A](key: String, valueOpt: Option[A]) =

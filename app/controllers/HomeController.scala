@@ -22,6 +22,7 @@ import utils.UserUtils.passwordHash
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Try
 
 @Singleton
 class HomeController @Inject()(
@@ -102,8 +103,8 @@ class HomeController @Inject()(
         val roomId = UUID.randomUUID().toString
         roomDataRepository.create(roomId, request.user, roomForm.title.getOrElse("noTitle"), roomForm.contentType.getOrElse("text/image"))
         roomDataRepository.createTag(roomId, roomForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
-        roomForm.authUser.foreach(user =>
-          roomDataRepository.createAuthUser(roomId, user.split(" "))
+        roomForm.authUser.foreach(users =>
+          roomDataRepository.createAuthUser(roomId, users.split(" "))
         )
         Redirect("/")
       }
@@ -136,6 +137,30 @@ class HomeController @Inject()(
           cache.set(idCookie.value, user.name)
           Redirect("/").withCookies(idCookie)
         })
+      }
+    )
+  }
+
+  def roomEdit(roomId: String) = RoomEditAction(roomId).async { implicit request =>
+    for {
+      roomData <- Future(cache.get[RoomData](roomId).get)
+      tags <- roomDataRepository.getTags(roomId).map(_.mkString(" "))
+      authUsers <- roomDataRepository.getAuthUsers(roomId).map(_.mkString(" "))
+    } yield Ok(views.html.roomEdit(roomId, roomData, tags, authUsers))
+  }
+
+  def roomUpdate(roomId: String) = RoomEditAction(roomId) { implicit request =>
+    roomForm.bindFromRequest.fold(
+      errors => {
+        Redirect("/")
+      },
+      roomForm => {
+        roomDataRepository.updateRoom(roomId, roomForm.title.getOrElse("noTitle"), roomForm.contentType.getOrElse("text/image"))
+        roomDataRepository.updateTag(roomId, roomForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
+        roomForm.authUser.foreach( users =>
+          roomDataRepository.updateAuthUser(roomId, users.split(" "))
+        )
+        Redirect("/")
       }
     )
   }

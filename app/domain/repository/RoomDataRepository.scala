@@ -26,4 +26,14 @@ trait RoomDataRepository {
   def getRoomContentType(roomId: String): Future[String]
 
   def getOneRoom(roomId: String): Future[Option[RoomData]]
+
+  def updateRoom(roomId: String, title: String, contentType: String): Future[_]
+
+  def updateTag(roomId: String, tag: Array[String]): Future[_]
+
+  def updateAuthUser(roomId: String, users: Array[String]): Future[_]
+
+  def deleteTag(roomId: String): Future[_]
+
+  def deleteAuthUser(roomId: String): Future[_]
 }

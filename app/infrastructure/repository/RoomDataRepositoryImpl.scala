@@ -194,6 +194,62 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
       }
     })
 
+  def updateRoom(roomId: String, title: String, contentType: String): Future[_] =
+    Future.fromTry(Try{
+      using(DB(ConnectionPool.borrow())) { db =>
+        db.localTx { implicit session =>
+          val sql =
+            sql"""UPDATE
+                 | room_properties
+                 | SET
+                 | title = $title,
+                 | content_type = $contentType
+                 | WHERE room_id = $roomId
+               """.stripMargin
+          sql.update().apply()
+        }
+      }
+    })
+
+  def updateTag(roomId: String, tag: Array[String]): Future[_] = {
+    deleteTag(roomId)
+    createTag(roomId, tag)
+  }
+
+  def updateAuthUser(roomId: String, users: Array[String]): Future[_] = {
+    deleteAuthUser(roomId)
+    createAuthUser(roomId, users)
+  }
+
+  def deleteTag(roomId: String): Future[_] =
+    Future.fromTry(Try{
+      using(DB(ConnectionPool.borrow())) { db =>
+        db.localTx { implicit session =>
+          val sql =
+            sql"""DELETE
+                 | FROM tag_properties
+                 | WHERE room_id = $roomId
+               """.stripMargin
+          sql.update().apply()
+        }
+      }
+    })
+
+  def deleteAuthUser(roomId: String): Future[_] =
+    Future.fromTry(Try{
+      using(DB(ConnectionPool.borrow())) { db =>
+        db.localTx { implicit session =>
+          val sql =
+            sql"""DELETE
+                 | FROM
+                 | user_properties
+                 | WHERE room_id = $roomId
+               """.stripMargin
+          sql.update().apply()
+        }
+      }
+    })
+
   private[this] def resultSetToRoomData(rs: WrappedResultSet): RoomData =
     RoomData(
       id = rs.long("id"),
