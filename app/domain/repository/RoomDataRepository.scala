@@ -25,5 +25,5 @@ trait RoomDataRepository {
 
   def getRoomContentType(roomId: String): Future[String]
 
-  def getOneRoom(roomId: String): Future[RoomData]
+  def getOneRoom(roomId: String): Future[Option[RoomData]]
 }

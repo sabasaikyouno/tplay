@@ -15,6 +15,7 @@ import models.form.LoginForm.loginForm
 import models.form.RoomForm.roomForm
 import models.form.SignupForm.signupForm
 import models.post.{PostImage, PostText}
+import models.room.RoomData
 import play.api.cache.SyncCacheApi
 import utils.RoomUtils.makeOrder
 import utils.UserUtils.passwordHash
@@ -86,9 +87,10 @@ class HomeController @Inject()(
     for {
       postedList <- postedDataRepository.getLatestPosted(roomId, limit, page)
       roomData <- roomDataRepository.getOneRoom(roomId)
+      if roomData.isDefined
       tags <- roomDataRepository.getTags(roomId)
       _ <- roomDataRepository.roomViewCount(roomId)
-    } yield Ok(views.html.room(roomData, postedList, tags, page))
+    } yield Ok(views.html.room(roomData.get, postedList, tags, page))
   }
 
   def createRoom = UserAction { implicit request =>

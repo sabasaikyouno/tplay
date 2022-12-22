@@ -174,7 +174,7 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
       }
     })
 
-  def getOneRoom(roomId: String): Future[RoomData] =
+  def getOneRoom(roomId: String): Future[Option[RoomData]] =
     Future.fromTry(Try{
       using(DB(ConnectionPool.borrow())) { db =>
         db.readOnly { implicit session =>
@@ -189,7 +189,7 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
                  | FROM room_properties
                  | WHERE room_id = $roomId
                """.stripMargin
-          sql.map(resultSetToRoomData).single().apply().get
+          sql.map(resultSetToRoomData).single().apply()
         }
       }
     })

@@ -1,6 +1,7 @@
 package controllers
 
 import domain.repository.RoomDataRepository
+import models.room.RoomData
 import models.user.UserData
 import play.api.cache.SyncCacheApi
 import play.api.mvc._
@@ -51,12 +52,14 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
   def PostFilter(roomId: String, postContentType: String) = new ActionFilter[UserRequest] {
     override protected def executionContext: ExecutionContext = cc.executionContext
 
-    def filter[A](request: UserRequest[A]) = Future.successful {
-      cache.getOrElseUpdate(roomId)(roomDataRepository.getOneRoom(roomId).value.get.get) match {
-        case roomData if !roomData.contentType.contains(postContentType) =>
-          Some(Redirect(s"/room/$roomId"))
-        case _ => None
-      }
+    def filter[A](request: UserRequest[A]) = getRoom(roomId).map { roomData =>
+      roomData
+        .filterNot(_.contentType.contains(postContentType))
+        .map(_ => Redirect(s"/room$roomId"))
     }
+  }
+
+  def getRoom(roomId: String): Future[Option[RoomData]] = {
+    cache.get(roomId).fold(roomDataRepository.getOneRoom(roomId))(Future(_))
   }
 }
