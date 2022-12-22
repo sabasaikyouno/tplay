@@ -23,6 +23,9 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
   def PostAction(roomId: String, postContentType: String) =
     RoomAction(roomId) andThen PostFilter(roomId, postContentType)
 
+  def RoomEditAction(roomId: String) =
+    RoomAction(roomId) andThen RoomEditorFilter(roomId)
+
   def UserActionRefiner = new ActionRefiner[Request, UserRequest] {
     override protected def executionContext: ExecutionContext = cc.executionContext
 
@@ -40,21 +43,35 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
   def RoomFilter(roomId: String) = new ActionFilter[UserRequest] {
     override protected def executionContext: ExecutionContext = cc.executionContext
 
-    def filter[A](request: UserRequest[A]) = getAuthUsers(roomId).map {
-      case authUsers if authUsers.nonEmpty && !authUsers.contains(request.user.name) =>
-        Some(Redirect("/"))
-      case _ => None
+    def filter[A](request: UserRequest[A]) = getAuthUsers(roomId).map { authUsers =>
+      cache.set(roomId, authUsers)
+      authUsers match {
+        case authUsers if authUsers.nonEmpty && !authUsers.contains(request.user.name) =>
+          Some(Redirect("/"))
+        case _ => None
+      }
     }
-
   }
 
   def PostFilter(roomId: String, postContentType: String) = new ActionFilter[UserRequest] {
     override protected def executionContext: ExecutionContext = cc.executionContext
 
     def filter[A](request: UserRequest[A]) = getRoom(roomId).map { roomData =>
+      setCache(roomId, roomData)
       roomData
         .filterNot(_.contentType.contains(postContentType))
         .map(_ => Redirect(s"/room$roomId"))
+    }
+  }
+
+  def RoomEditorFilter(roomId: String) = new ActionFilter[UserRequest] {
+    override protected def executionContext: ExecutionContext = cc.executionContext
+
+    def filter[A](request: UserRequest[A]) = getRoom(roomId).map { roomData =>
+      setCache(roomId, roomData)
+      roomData
+        .filterNot(request.user.name == _.userId)
+        .map(_ => Redirect(s"/room/$roomId"))
     }
   }
 
@@ -63,4 +80,8 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
 
   private def getAuthUsers(roomId: String) =
     cache.get(roomId+"authUsers").fold(roomDataRepository.getAuthUsers(roomId))(Future(_))
+
+  // 値がNoneの場合セットしない。
+  private def setCache[A](key: String, valueOpt: Option[A]) =
+    valueOpt.foreach(cache.set(key, _))
 }
