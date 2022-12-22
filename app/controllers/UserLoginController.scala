@@ -40,13 +40,12 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
   def RoomFilter(roomId: String) = new ActionFilter[UserRequest] {
     override protected def executionContext: ExecutionContext = cc.executionContext
 
-    def filter[A](request: UserRequest[A]) = Future.successful {
-      cache.getOrElseUpdate(roomId+"authUsers")(roomDataRepository.getAuthUsers(roomId).value.get.getOrElse(List(""))) match {
-        case userList if userList.nonEmpty && !userList.contains(request.user.name) =>
-          Some(Redirect("/"))
-        case _ => None
-      }
+    def filter[A](request: UserRequest[A]) = getAuthUsers(roomId).map {
+      case authUsers if authUsers.nonEmpty && !authUsers.contains(request.user.name) =>
+        Some(Redirect("/"))
+      case _ => None
     }
+
   }
 
   def PostFilter(roomId: String, postContentType: String) = new ActionFilter[UserRequest] {
@@ -59,7 +58,9 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
     }
   }
 
-  def getRoom(roomId: String): Future[Option[RoomData]] = {
+  private def getRoom(roomId: String) =
     cache.get(roomId).fold(roomDataRepository.getOneRoom(roomId))(Future(_))
-  }
+
+  private def getAuthUsers(roomId: String) =
+    cache.get(roomId+"authUsers").fold(roomDataRepository.getAuthUsers(roomId))(Future(_))
 }
