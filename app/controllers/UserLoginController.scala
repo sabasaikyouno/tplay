@@ -40,7 +40,7 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
     override protected def executionContext: ExecutionContext = cc.executionContext
 
     def filter[A](request: UserRequest[A]) = Future.successful {
-      cache.getOrElseUpdate(roomId)(roomDataRepository.getAuthUsers(roomId).value.get.getOrElse(List(""))) match {
+      cache.getOrElseUpdate(roomId+"authUsers")(roomDataRepository.getAuthUsers(roomId).value.get.getOrElse(List(""))) match {
         case userList if userList.nonEmpty && !userList.contains(request.user.name) =>
           Some(Redirect("/"))
         case _ => None
@@ -52,8 +52,8 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
     override protected def executionContext: ExecutionContext = cc.executionContext
 
     def filter[A](request: UserRequest[A]) = Future.successful {
-      cache.getOrElseUpdate(roomId+"contentType")(roomDataRepository.getRoomContentType(roomId).value.get.get) match {
-        case contentType if !contentType.contains(postContentType) =>
+      cache.getOrElseUpdate(roomId)(roomDataRepository.getOneRoom(roomId).value.get.get) match {
+        case roomData if !roomData.contentType.contains(postContentType) =>
           Some(Redirect(s"/room/$roomId"))
         case _ => None
       }

@@ -122,7 +122,10 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
             sql"""SELECT
                  | id,
                  | room_id,
-                 | title
+                 | user_id,
+                 | title,
+                 | view_count,
+                 | content_type
                  | FROM room_properties
                  | ORDER BY $order DESC
                  | LIMIT $page, $limit
@@ -140,7 +143,10 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
             sql"""SELECT
                  | room_properties.id,
                  | room_properties.room_id,
-                 | room_properties.title
+                 | room_properties.user_id,
+                 | room_properties.title,
+                 | room_properties.view_count,
+                 | room_properties.content_type
                  | FROM room_properties
                  | JOIN tag_properties
                  | ON room_properties.room_id = tag_properties.room_id
@@ -176,7 +182,10 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
             sql"""SELECT
                  | id,
                  | room_id,
-                 | title
+                 | user_id,
+                 | title,
+                 | view_count,
+                 | content_type
                  | FROM room_properties
                  | WHERE room_id = $roomId
                """.stripMargin
@@ -189,6 +198,9 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
     RoomData(
       id = rs.long("id"),
       roomId = rs.string("room_id"),
-      title = rs.string("title")
+      userId = rs.string("user_id"),
+      title = rs.string("title"),
+      viewCount = rs.int("view_count"),
+      contentType = rs.string("content_type")
     )
 }
