@@ -22,7 +22,6 @@ import utils.UserUtils.passwordHash
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Try
 
 @Singleton
 class HomeController @Inject()(

@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import domain.repository.PostedDataRepository
 import models.post.PostData
 import models.posted
-import models.posted.{PostedData, PostedImage}
+import models.posted.{PostedData, PostedImage, PostedText}
 import models.user.UserData
 
 import scala.concurrent.Future
@@ -57,7 +57,7 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
   private[this] def resultSetToPostedData(rs: WrappedResultSet): PostedData =
     rs.string("content_type") match {
       case "text" =>
-        posted.PostedText(
+        PostedText(
           user = UserData(rs.string("user_id")),
           text = rs.string("content"),
           createdTime = rs.localDateTime("created_time")
