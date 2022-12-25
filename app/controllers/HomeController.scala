@@ -17,7 +17,7 @@ import models.form.SignupForm.signupForm
 import models.post.{PostImage, PostText}
 import models.room.RoomData
 import play.api.cache.SyncCacheApi
-import utils.RoomUtils.{makeOrder, roomResult}
+import utils.ResultUtils._
 import utils.UserUtils.passwordHash
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,17 +33,11 @@ class HomeController @Inject()(
 ) extends UserLoginController(cc, roomDataRepository) with I18nSupport {
 
   def index(pageOpt: Option[Int], tagOpt: Option[String], orderOpt: Option[String]) = UserAction.async { implicit request =>
-    val order = makeOrder(orderOpt.filter(_ != ""))
-    val limit = 3
-    val page = pageOpt.filter(_ >= 0).getOrElse(0) * limit
-    val roomDataList = tagOpt.filter(_ != "").fold(roomDataRepository.getLatestRoom(page, limit, order))(
-      roomDataRepository.getRoomTagFilter(page, _, limit, order)
-    )
-
-    roomDataList.map( list =>
-      Ok(views.html.index(list, page, tagOpt.getOrElse(""), orderOpt.getOrElse("")))
-    )
+    indexResult(pageOpt, tagOpt, orderOpt) { (roomDataList, page) =>
+      Ok(views.html.index(roomDataList, page, tagOpt.getOrElse(""), orderOpt.getOrElse("")))
+    }
   }
+
 
   def loginFormView = Action { implicit request =>
     Ok(views.html.login())
