@@ -17,7 +17,7 @@ import models.form.SignupForm.signupForm
 import models.post.{PostImage, PostText}
 import models.room.RoomData
 import play.api.cache.SyncCacheApi
-import utils.RoomUtils.makeOrder
+import utils.RoomUtils.{makeOrder, roomResult}
 import utils.UserUtils.passwordHash
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -26,10 +26,10 @@ import scala.concurrent.Future
 @Singleton
 class HomeController @Inject()(
   cc: ControllerComponents,
-  val postedDataRepository: PostedDataRepository,
-  roomDataRepository: RoomDataRepository,
+  implicit val postedDataRepository: PostedDataRepository,
+  implicit override val roomDataRepository: RoomDataRepository,
   val userDataRepository: UserDataRepository,
-  val cache: SyncCacheApi
+  implicit val cache: SyncCacheApi
 ) extends UserLoginController(cc, roomDataRepository) with I18nSupport {
 
   def index(pageOpt: Option[Int], tagOpt: Option[String], orderOpt: Option[String]) = UserAction.async { implicit request =>
@@ -81,16 +81,9 @@ class HomeController @Inject()(
   }
 
   def room(roomId: String, pageOpt: Option[Int]) = RoomAction(roomId).async { implicit request =>
-    val limit = 3
-    val page = pageOpt.filter(_ >= 0).getOrElse(0) * limit
-
-    for {
-      roomData <- roomDataRepository.getOneRoom(roomId)
-      if roomData.isDefined
-      postedList <- postedDataRepository.getLatestPosted(roomId, limit, page)
-      tags <- roomDataRepository.getTags(roomId)
-      _ <- roomDataRepository.roomViewCount(roomId)
-    } yield Ok(views.html.room(roomData.get, postedList, tags, page))
+    roomResult(roomId, pageOpt){ (roomData, postedList, tags, page) =>
+      Ok(views.html.room(roomData, postedList, tags, page))
+    }
   }
 
   def createRoom = UserAction { implicit request =>
