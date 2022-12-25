@@ -1,18 +1,18 @@
 package controllers
 
 import domain.repository.RoomDataRepository
-import models.room.RoomData
 import models.user.UserData
 import play.api.cache.SyncCacheApi
 import play.api.mvc._
+import utils.CacheUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class UserRequest[A](val user: UserData, request: Request[A]) extends WrappedRequest[A](request)
 
-abstract class UserLoginController(protected val cc: ControllerComponents, val roomDataRepository: RoomDataRepository) extends AbstractController(cc) {
-  val cache: SyncCacheApi
+abstract class UserLoginController(protected val cc: ControllerComponents, implicit val roomDataRepository: RoomDataRepository) extends AbstractController(cc) {
+  implicit val cache: SyncCacheApi
 
   def UserAction =
     Action andThen UserActionRefiner
@@ -57,7 +57,7 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
     override protected def executionContext: ExecutionContext = cc.executionContext
 
     def filter[A](request: UserRequest[A]) = getRoom(roomId).map { roomData =>
-      setCache(roomId, roomData)
+      setOptCache(roomId, roomData)
       roomData
         .filterNot(_.contentType.contains(postContentType))
         .map(_ => Redirect(s"/room$roomId"))
@@ -68,20 +68,10 @@ abstract class UserLoginController(protected val cc: ControllerComponents, val r
     override protected def executionContext: ExecutionContext = cc.executionContext
 
     def filter[A](request: UserRequest[A]) = getRoom(roomId).map { roomData =>
-      setCache(roomId, roomData)
+      setOptCache(roomId, roomData)
       roomData
         .filterNot(request.user.name == _.userId)
         .map(_ => Redirect(s"/room/$roomId"))
     }
   }
-
-  private def getRoom(roomId: String) =
-    cache.get[RoomData](roomId).fold(roomDataRepository.getOneRoom(roomId))(v => Future(Some(v)))
-
-  private def getAuthUsers(roomId: String) =
-    cache.get[List[String]](roomId+"authUsers").fold(roomDataRepository.getAuthUsers(roomId))(Future(_))
-
-  // 値がNoneの場合セットしない。
-  private def setCache[A](key: String, valueOpt: Option[A]) =
-    valueOpt.foreach(cache.set(key, _))
 }

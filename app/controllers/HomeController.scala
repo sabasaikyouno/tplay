@@ -85,9 +85,9 @@ class HomeController @Inject()(
     val page = pageOpt.filter(_ >= 0).getOrElse(0) * limit
 
     for {
-      postedList <- postedDataRepository.getLatestPosted(roomId, limit, page)
       roomData <- roomDataRepository.getOneRoom(roomId)
       if roomData.isDefined
+      postedList <- postedDataRepository.getLatestPosted(roomId, limit, page)
       tags <- roomDataRepository.getTags(roomId)
       _ <- roomDataRepository.roomViewCount(roomId)
     } yield Ok(views.html.room(roomData.get, postedList, tags, page))

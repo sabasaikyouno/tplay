@@ -1,6 +1,6 @@
 package controllers
 
-import domain.repository.RoomDataRepository
+import domain.repository.{PostedDataRepository, RoomDataRepository}
 import javax.inject._
 import play.api._
 import play.api.cache.SyncCacheApi
@@ -14,10 +14,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class JsonController @Inject()(
   cc: ControllerComponents,
   roomDataRepository: RoomDataRepository,
+  val postedDataRepository: PostedDataRepository,
   val cache: SyncCacheApi
 ) extends JsonUserController(cc, roomDataRepository) {
 
-  def index(pageOpt: Option[Int], tagOpt: Option[String], orderOpt: Option[String]) = UserAction.async { implicit session =>
+  def index(pageOpt: Option[Int], tagOpt: Option[String], orderOpt: Option[String]) = UserAction.async { implicit request =>
     val order = makeOrder(orderOpt.filter(_ != ""))
     val limit = 3
     val page = pageOpt.filter(_ >= 0).getOrElse(0) * limit
@@ -31,5 +32,23 @@ class JsonController @Inject()(
         "roomData" -> list
       ))
     )
+  }
+
+  def room(roomId: String, pageOpt: Option[Int]) = RoomAction(roomId).async { implicit request =>
+    val limit = 3
+    val page = pageOpt.filter(_ >= 0).getOrElse(0) * limit
+
+    for {
+      roomData <- roomDataRepository.getOneRoom(roomId)
+      if roomData.isDefined
+      postedList <- postedDataRepository.getLatestPosted(roomId, limit, page)
+      tags <- roomDataRepository.getTags(roomId)
+      _ <- roomDataRepository.roomViewCount(roomId)
+    } yield Ok(Json.obj(
+      "status" -> "OK",
+      "roomData" -> roomData.get,
+      "postedList" -> postedList,
+      "tags" -> tags
+    ))
   }
 }
