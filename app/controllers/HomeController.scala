@@ -13,7 +13,7 @@ import play.api.i18n.I18nSupport
 import akka.stream.scaladsl._
 import models.form.Login
 import models.form.Login.loginForm
-import models.form.RoomForm.roomForm
+import models.form.Room.roomForm
 import models.form.Signup.signupForm
 import models.post.{PostImage, PostText}
 import models.room.RoomData

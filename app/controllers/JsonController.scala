@@ -4,7 +4,8 @@ import java.util.UUID
 
 import domain.repository.{PostedDataRepository, RoomDataRepository, UserDataRepository}
 import javax.inject._
-import models.form.{Login, Signup}
+import models.form.Room.roomForm
+import models.form.{Login, Room, Signup}
 import play.api._
 import play.api.cache.SyncCacheApi
 import play.api.libs.json._
@@ -62,6 +63,21 @@ class JsonController @Inject()(
       errors => BadRequest(Json.obj("message" -> "miss parameter")),
       signup => {
         userDataRepository.signup(signup.userId, passwordHash(signup.password))
+        Ok(Json.obj("status" -> "OK"))
+      }
+    )
+  }
+
+  def createRoom = UserAction(parse.json) { implicit request =>
+    request.body.validate[Room].fold(
+      errors => NotFound(Json.obj("message" -> errors.toString)),
+      room => {
+        val roomId = UUID.randomUUID().toString
+        roomDataRepository.create(roomId, request.user, room.title.getOrElse("noTitle"), room.contentType.getOrElse("text/image"))
+        roomDataRepository.createTag(roomId, room.tag.map(_.split(" ")).getOrElse(Array("noTag")))
+        room.authUser.foreach(users =>
+          roomDataRepository.createAuthUser(roomId, users.split(" "))
+        )
         Ok(Json.obj("status" -> "OK"))
       }
     )
