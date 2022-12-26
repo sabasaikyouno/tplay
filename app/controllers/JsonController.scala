@@ -4,7 +4,7 @@ import java.util.UUID
 
 import domain.repository.{PostedDataRepository, RoomDataRepository, UserDataRepository}
 import javax.inject._
-import models.form.Login
+import models.form.{Login, Signup}
 import play.api._
 import play.api.cache.SyncCacheApi
 import play.api.libs.json._
@@ -53,6 +53,16 @@ class JsonController @Inject()(
           val id = UUID.randomUUID().toString
           cache.set(id, user.name)
           Ok(Json.obj("id" -> id))})
+      }
+    )
+  }
+
+  def signup = Action(parse.json) { implicit request =>
+    request.body.validate[Signup].fold(
+      errors => BadRequest(Json.obj("message" -> "miss parameter")),
+      signup => {
+        userDataRepository.signup(signup.userId, passwordHash(signup.password))
+        Ok(Json.obj("status" -> "OK"))
       }
     )
   }
