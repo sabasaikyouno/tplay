@@ -6,7 +6,7 @@ import play.api.data._
 case class TextForm(text: String)
 
 object TextForm {
-  val textForm = Form(
+  val textForm: Form[TextForm] = Form(
     mapping(
       "text" -> nonEmptyText
     )(TextForm.apply)(TextForm.unapply)

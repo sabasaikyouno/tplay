@@ -6,7 +6,7 @@ import play.api.data._
 case class RoomForm(title: Option[String], tag: Option[String], authUser: Option[String], contentType: Option[String])
 
 object RoomForm {
-  val roomForm = Form(
+  val roomForm: Form[RoomForm] = Form(
     mapping(
       "title" -> optional(text),
       "tag" -> optional(text),

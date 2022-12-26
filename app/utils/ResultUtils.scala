@@ -21,9 +21,7 @@ object ResultUtils {
       roomDataRepository.getRoomTagFilter(page, _, limit, order)
     )
 
-    roomDataList.map( list =>
-      f(list, page)
-    )
+    roomDataList.map(f(_, page))
   }
 
   def roomResult(roomId: String, pageOpt: Option[Int])

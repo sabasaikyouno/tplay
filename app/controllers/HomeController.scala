@@ -11,7 +11,8 @@ import domain.repository.{PostedDataRepository, RoomDataRepository, UserDataRepo
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import akka.stream.scaladsl._
-import models.form.LoginForm.loginForm
+import models.form.Login
+import models.form.Login.loginForm
 import models.form.RoomForm.roomForm
 import models.form.SignupForm.signupForm
 import models.post.{PostImage, PostText}
@@ -38,16 +39,13 @@ class HomeController @Inject()(
     }
   }
 
-
   def loginFormView = Action { implicit request =>
     Ok(views.html.login())
   }
 
   def postText(roomId: String) = PostAction(roomId, "text") { implicit request =>
     textForm.bindFromRequest.fold(
-      errors => {
-        Redirect("/")
-      },
+      errors => Redirect("/"),
       sendText => {
         postedDataRepository.create(PostText(roomId, request.user, sendText.text))
         Redirect(s"/room/$roomId")
@@ -82,9 +80,7 @@ class HomeController @Inject()(
 
   def createRoom = UserAction { implicit request =>
     roomForm.bindFromRequest.fold(
-      errors => {
-        NotFound(errors.toString)
-      },
+      errors => NotFound(errors.toString),
       roomForm => {
         val roomId = UUID.randomUUID().toString
         roomDataRepository.create(roomId, request.user, roomForm.title.getOrElse("noTitle"), roomForm.contentType.getOrElse("text/image"))
@@ -99,9 +95,7 @@ class HomeController @Inject()(
 
   def signup = Action { implicit request =>
     signupForm.bindFromRequest.fold(
-      errors => {
-        Redirect("/login_form")
-      },
+      errors => Redirect("/login_form"),
       signup => {
         userDataRepository.signup(
           signup.userId,
@@ -114,9 +108,7 @@ class HomeController @Inject()(
 
   def login = Action.async { implicit request =>
     loginForm.bindFromRequest.fold(
-      errors => {
-        Future(Redirect("/login_form"))
-      },
+      errors => Future(Redirect("/login_form")),
       login => {
         userDataRepository.login(login.userId, passwordHash(login.password)).map(_.fold(Redirect("/login_form")){ user =>
           val idCookie = request.cookies.get("id").getOrElse(Cookie("id", UUID.randomUUID().toString))
@@ -137,9 +129,7 @@ class HomeController @Inject()(
 
   def roomUpdate(roomId: String) = RoomEditAction(roomId) { implicit request =>
     roomForm.bindFromRequest.fold(
-      errors => {
-        Redirect("/")
-      },
+      errors => Redirect("/"),
       roomForm => {
         roomDataRepository.updateRoom(roomId, roomForm.title.getOrElse("noTitle"), roomForm.contentType.getOrElse("text/image"))
         roomDataRepository.updateTag(roomId, roomForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
