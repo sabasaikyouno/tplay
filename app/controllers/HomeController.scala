@@ -54,7 +54,7 @@ class HomeController @Inject()(
 
   def postImage(roomId: String) = PostAction(roomId, "image")(parse.multipartFormData) { implicit request =>
     request.body.file("image").filter(_.filename.endsWith("jpg")).map { image =>
-      val imgPath = s"tmp/img/${UUID.randomUUID() + image.filename}"
+      val imgPath = s"tmp/img/${UUID.randomUUID().toString + image.filename}"
       image.ref.moveTo(new File(imgPath))
       postedDataRepository.create(PostImage(roomId, request.user, imgPath))
       Redirect(s"/room/$roomId")

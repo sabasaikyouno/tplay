@@ -32,9 +32,9 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
              | ) VALUES (
              | $roomId,
              | ${userData.name},
-             | ${room.title},
+             | ${room.title.getOrElse("noTitle")},
              | 0,
-             | ${room.contentType}
+             | ${room.contentType.getOrElse("text/image")}
              | )
                """.stripMargin
       sql.update().apply()
