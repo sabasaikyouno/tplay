@@ -1,5 +1,7 @@
 package domain.repository
 
+import controllers.UserRequest
+import models.form.Room
 import models.room.RoomData
 import models.user.UserData
 import scalikejdbc.interpolation.SQLSyntax
@@ -7,7 +9,9 @@ import scalikejdbc.interpolation.SQLSyntax
 import scala.concurrent.Future
 
 trait RoomDataRepository {
-  def create(roomId: String, user: UserData, title: String, contentType: String): Future[_]
+  def create(roomId: String, room: Room)(implicit request: UserRequest[_]): Future[_]
+
+  def createRoom(roomId: String, userData: UserData, room: Room): Future[_]
 
   def createTag(roomId: String, tag: Array[String]): Future[_]
 

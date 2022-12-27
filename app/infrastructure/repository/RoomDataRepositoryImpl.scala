@@ -1,6 +1,8 @@
 package infrastructure.repository
 
+import controllers.UserRequest
 import domain.repository.RoomDataRepository
+import models.form.Room
 import models.room.RoomData
 import models.user.UserData
 
@@ -10,7 +12,15 @@ import utils.DBUtils._
 
 class RoomDataRepositoryImpl extends RoomDataRepository {
 
-  def create(roomId: String, user: UserData, title: String, contentType: String): Future[_] =
+  def create(roomId: String, room: Room)(implicit request: UserRequest[_]): Future[_] = {
+    createRoom(roomId, request.user, room)
+    room.authUser.foreach(users =>
+      createAuthUser(roomId, users.split(" "))
+    )
+    createTag(roomId, room.tag.map(_.split(" ")).getOrElse(Array("noTag")))
+  }
+
+  def createRoom(roomId: String, userData: UserData, room: Room) =
     localTx { implicit session =>
       val sql =
         sql"""INSERT INTO room_properties (
@@ -21,10 +31,10 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
              | content_type
              | ) VALUES (
              | $roomId,
-             | ${user.name},
-             | $title,
+             | ${userData.name},
+             | ${room.title},
              | 0,
-             | $contentType
+             | ${room.contentType}
              | )
                """.stripMargin
       sql.update().apply()

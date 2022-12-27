@@ -11,7 +11,6 @@ import domain.repository.{PostedDataRepository, RoomDataRepository, UserDataRepo
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import akka.stream.scaladsl._
-import models.form.Login
 import models.form.Login.loginForm
 import models.form.Room.roomForm
 import models.form.Signup.signupForm
@@ -81,13 +80,9 @@ class HomeController @Inject()(
   def createRoom = UserAction { implicit request =>
     roomForm.bindFromRequest.fold(
       errors => NotFound(errors.toString),
-      roomForm => {
+      room => {
         val roomId = UUID.randomUUID().toString
-        roomDataRepository.create(roomId, request.user, roomForm.title.getOrElse("noTitle"), roomForm.contentType.getOrElse("text/image"))
-        roomDataRepository.createTag(roomId, roomForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
-        roomForm.authUser.foreach(users =>
-          roomDataRepository.createAuthUser(roomId, users.split(" "))
-        )
+        roomDataRepository.create(roomId, room)
         Redirect("/")
       }
     )

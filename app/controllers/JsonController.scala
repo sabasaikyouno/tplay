@@ -4,7 +4,6 @@ import java.util.UUID
 
 import domain.repository.{PostedDataRepository, RoomDataRepository, UserDataRepository}
 import javax.inject._
-import models.form.Room.roomForm
 import models.form.{Login, Room, Signup}
 import play.api._
 import play.api.cache.SyncCacheApi
@@ -73,11 +72,7 @@ class JsonController @Inject()(
       errors => NotFound(Json.obj("message" -> errors.toString)),
       room => {
         val roomId = UUID.randomUUID().toString
-        roomDataRepository.create(roomId, request.user, room.title.getOrElse("noTitle"), room.contentType.getOrElse("text/image"))
-        roomDataRepository.createTag(roomId, room.tag.map(_.split(" ")).getOrElse(Array("noTag")))
-        room.authUser.foreach(users =>
-          roomDataRepository.createAuthUser(roomId, users.split(" "))
-        )
+        roomDataRepository.create(roomId, room)
         Ok(Json.obj("status" -> "OK"))
       }
     )
