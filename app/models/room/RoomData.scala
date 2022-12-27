@@ -1,6 +1,6 @@
 package models.room
 
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.{Json, Reads, Writes}
 
 case class RoomData(
   id: Long,
@@ -13,4 +13,5 @@ case class RoomData(
 
 object RoomData {
   implicit val roomDataWrites: Writes[RoomData] = Json.writes[RoomData]
+  implicit val roomDataReads: Reads[RoomData] = Json.reads[RoomData]
 }

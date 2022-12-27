@@ -15,6 +15,7 @@ GET     /json/                      controllers.JsonController.index(page: Optio
 GET     /json/room/:roomId          controllers.JsonController.room(roomId, page: Option[Int])
 POST    /json/login                 controllers.JsonController.login
 POST    /json/signup                controllers.JsonController.signup
+POST    /json/room                  controllers.JsonController.createRoom
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

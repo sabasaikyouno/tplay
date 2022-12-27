@@ -9,7 +9,7 @@ import utils.DBUtils._
 
 class UserDataRepositoryImpl extends UserDataRepository {
 
-  def signup(userId: String, password: String): Future[_] =
+  def signup(userId: String, password: String) =
     localTx { implicit session =>
       val sql =
         sql"""INSERT INTO user_properties (

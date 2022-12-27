@@ -76,7 +76,7 @@ class JsonController @Inject()(
       room => {
         val roomId = UUID.randomUUID().toString
         roomDataRepository.create(roomId, room)
-        Ok(Json.obj("status" -> "OK"))
+        Ok(Json.obj("status" -> "OK", "roomId" -> roomId))
       }
     )
   }

@@ -92,10 +92,7 @@ class HomeController @Inject()(
     signupForm.bindFromRequest.fold(
       errors => Redirect("/login_form"),
       signup => {
-        userDataRepository.signup(
-          signup.userId,
-          passwordHash(signup.password)
-        )
+        userDataRepository.signup(signup.userId, passwordHash(signup.password))
         Redirect("/login_form")
       }
     )
