@@ -14,6 +14,7 @@ import utils.UserUtils.passwordHash
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 @Singleton
 class JsonController @Inject()(
@@ -57,12 +58,14 @@ class JsonController @Inject()(
     )
   }
 
-  def signup = Action(parse.json) { implicit request =>
+  def signup = Action(parse.json).async { implicit request =>
     request.body.validate[Signup].fold(
-      errors => BadRequest(Json.obj("message" -> "miss parameter")),
+      errors => Future(BadRequest(Json.obj("message" -> "miss parameter"))),
       signup => {
-        userDataRepository.signup(signup.userId, passwordHash(signup.password))
-        Ok(Json.obj("status" -> "OK"))
+        userDataRepository.signup(signup.userId, passwordHash(signup.password)).transform {
+          case Success(_) => Success(Ok(Json.obj("status" -> "OK")))
+          case Failure(_) => Success(BadRequest(Json.obj("message" -> "duplicate id")))
+        }
       }
     )
   }
