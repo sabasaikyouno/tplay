@@ -1,40 +1,43 @@
 package controllers
 
+import java.util.UUID
+
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
 import play.api.test._
 import play.api.test.Helpers._
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injecting {
 
   "HomeController Test" should {
 
+    val testName, testPass = UUID.randomUUID().toString
+    val signup = route(app, FakeRequest(POST, "/signup").withFormUrlEncodedBody("userId" -> testName, "password" -> testPass)).get
+    val login = signup.flatMap(_ => route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get)
+    val loginCookie = cookies(login).get("id").get
+
     "ログインせずhomeにアクセスすると、login_formにリダイレクトする" in {
-      val request = FakeRequest(GET, "/")
-      val home = route(app, request).get
+      val home = route(app, FakeRequest(GET, "/")).get
 
       status(home) mustBe 303
       redirectLocation(home) mustBe Some("/login")
     }
 
     "login_form" in {
-      val request = FakeRequest(GET, "/login")
-      val home = route(app, request).get
+      val login_form = route(app, FakeRequest(GET, "/login")).get
 
-      status(home) mustBe 200
+      status(login_form) mustBe 200
     }
 
     "signup" in {
-      val home = route(app, FakeRequest(POST, "/signup").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get
-
-      status(home) mustBe 303
-      redirectLocation(home) mustBe Some("/login")
+      status(signup) mustBe 303
+      redirectLocation(signup) mustBe Some("/login")
     }
 
     "login成功した場合、homeにリダイレクトする" in {
-      val login = route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get
-
       status(login) mustBe 303
       redirectLocation(login) mustBe Some("/")
     }
@@ -47,8 +50,7 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
     }
 
     "ログインしているときのhome" in {
-      val login = route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get
-      val home = route(app, FakeRequest(GET, "/").withCookies(cookies(login).get("id").get)).get
+      val home = route(app, FakeRequest(GET, "/").withCookies(loginCookie)).get
 
       status(home) mustBe 200
     }
@@ -56,8 +58,12 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
 
   "Room Test" should {
 
+    val testName, testPass = UUID.randomUUID().toString
+    val signup = route(app, FakeRequest(POST, "/signup").withFormUrlEncodedBody("userId" -> testName, "password" -> testPass)).get
+    val login = signup.flatMap(_ => route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get)
+    val loginCookie = cookies(login).get("id").get
+
     "create roomパラメーターなし" in {
-      val loginCookie = cookies(route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get).get("id").get
       val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)).get
 
       status(createRoom) mustBe 303
@@ -65,7 +71,6 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
     }
 
     "create room パラメーターあり" in {
-      val loginCookie = cookies(route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get).get("id").get
       val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)
         .withFormUrlEncodedBody(
           "title" -> "test",
