@@ -15,11 +15,11 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
       val home = route(app, request).get
 
       status(home) mustBe 303
-      redirectLocation(home) mustBe Some("/login_form")
+      redirectLocation(home) mustBe Some("/login")
     }
 
     "login_form" in {
-      val request = FakeRequest(GET, "/login_form")
+      val request = FakeRequest(GET, "/login")
       val home = route(app, request).get
 
       status(home) mustBe 200
@@ -29,7 +29,7 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
       val home = route(app, FakeRequest(POST, "/signup").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get
 
       status(home) mustBe 303
-      redirectLocation(home) mustBe Some("/login_form")
+      redirectLocation(home) mustBe Some("/login")
     }
 
     "login成功した場合、homeにリダイレクトする" in {
@@ -43,7 +43,7 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
       val login = route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "b", "password" -> "b")).get
 
       status(login) mustBe 303
-      redirectLocation(login) mustBe Some("/login_form")
+      redirectLocation(login) mustBe Some("/login")
     }
 
     "ログインしているときのhome" in {
@@ -58,7 +58,7 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
 
     "create roomパラメーターなし" in {
       val loginCookie = cookies(route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get).get("id").get
-      val createRoom = route(app, FakeRequest(POST, "/create_room").withCookies(loginCookie)).get
+      val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)).get
 
       status(createRoom) mustBe 303
       redirectLocation(createRoom) mustBe Some("/")
@@ -66,7 +66,7 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
 
     "create room パラメーターあり" in {
       val loginCookie = cookies(route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get).get("id").get
-      val createRoom = route(app, FakeRequest(POST, "/create_room").withCookies(loginCookie)
+      val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)
         .withFormUrlEncodedBody(
           "title" -> "test",
           "tag" -> "test test2",
@@ -79,10 +79,10 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
     }
 
     "create room ログインしないと作れない" in {
-      val createRoom = route(app, FakeRequest(POST, "/create_room")).get
+      val createRoom = route(app, FakeRequest(POST, "/room")).get
 
       status(createRoom) mustBe 303
-      redirectLocation(createRoom) mustBe Some("/login_form")
+      redirectLocation(createRoom) mustBe Some("/login")
     }
   }
 }
