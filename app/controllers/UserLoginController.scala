@@ -26,7 +26,7 @@ abstract class UserLoginController(cc: ControllerComponents, roomDataRepository:
           cache.get[String](c.value).map( v =>
             new UserRequest(UserData(v), request)
           )
-        ).toRight(Redirect("/login_form"))
+        ).toRight(Redirect("/login"))
     )
   }
 }

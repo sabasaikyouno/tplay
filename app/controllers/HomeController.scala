@@ -91,19 +91,19 @@ class HomeController @Inject()(
 
   def signup = Action { implicit request =>
     signupForm.bindFromRequest.fold(
-      errors => Redirect("/login_form"),
+      errors => Redirect("/login"),
       signup => {
         userDataRepository.signup(signup.userId, passwordHash(signup.password))
-        Redirect("/login_form")
+        Redirect("/login")
       }
     )
   }
 
   def login = Action.async { implicit request =>
     loginForm.bindFromRequest.fold(
-      errors => Future(Redirect("/login_form")),
+      errors => Future(Redirect("/login")),
       login => {
-        userDataRepository.login(login.userId, passwordHash(login.password)).map(_.fold(Redirect("/login_form")){ user =>
+        userDataRepository.login(login.userId, passwordHash(login.password)).map(_.fold(Redirect("/login")){ user =>
           val idCookie = request.cookies.get("id").getOrElse(Cookie("id", UUID.randomUUID().toString))
           cache.set(idCookie.value, user.name)
           Redirect("/").withCookies(idCookie)
