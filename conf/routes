@@ -2,7 +2,7 @@
 GET     /                           controllers.HomeController.index(page: Option[Int], tag: Option[String], order: Option[String])
 POST    /post_text                  controllers.HomeController.postText(roomId: String)
 POST    /post_image                 controllers.HomeController.postImage(roomId: String)
-GET     /getImage/tmp/img/:fileName controllers.HomeController.getImage(fileName, roomId: String)
+GET     /getImage/:fileName         controllers.HomeController.getImage(fileName, roomId: String)
 GET     /room/:roomId               controllers.HomeController.room(roomId, page: Option[Int])
 POST    /create_room                controllers.HomeController.createRoom
 POST    /signup                     controllers.HomeController.signup

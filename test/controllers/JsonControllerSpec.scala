@@ -11,7 +11,6 @@ import play.api.libs.json.Reads._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
 class JsonControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injecting {
 
   "JsonController Test" should {
