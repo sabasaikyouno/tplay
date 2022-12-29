@@ -74,7 +74,7 @@ class HomeController @Inject()(
 
   def room(roomId: String, pageOpt: Option[Int]) = RoomAction(roomId).async { implicit request =>
     roomResult(roomId, pageOpt){ (roomData, postedList, tags, page) =>
-      Ok(views.html.room(roomData, postedList, tags, page))
+      Ok(views.html.room(roomData, postedList, tags, page, request.user.name))
     }
   }
 
@@ -132,5 +132,10 @@ class HomeController @Inject()(
         Redirect("/")
       }
     )
+  }
+
+  def deletePosted(roomId: String, contentId: Long) = RoomAction(roomId) { implicit request =>
+    postedDataRepository.deletePosted(roomId, contentId, request.user.name)
+    Redirect(s"/room/$roomId")
   }
 }

@@ -1,13 +1,18 @@
 @import models.posted._
 @import models.user._
 @import models.room._
-@(roomData: RoomData, postedDataList: List[PostedData], tags: List[String], page: Int)
+@(roomData: RoomData, postedDataList: List[PostedData], tags: List[String], page: Int, myName: String)
 
 @main(roomData.title) {
 @for(postedData <- postedDataList) {
     @postedData match {
-        case PostedText(UserData(id), text, createdTime) => {<h3>@id @text @createdTime</h3>}
-        case PostedImage(UserData(id), img, createdTime) => {<img src="/getImage/@img?roomId=@roomData.id">}
+        case PostedText(_, UserData(id), text, createdTime) => {<h3>@id @text @createdTime</h3>}
+        case PostedImage(_, UserData(id), img, createdTime) => {<img src="/getImage/@img?roomId=@roomData.id">}
+    }
+    @if(postedData.user.name == myName) {
+        <form action="/room/@roomData.roomId/delete?contentId=@postedData.contentId" method="post">
+            <input type="submit" value="delete">
+        </form>
     }
 }
 <form action="/post_text?roomId=@roomData.roomId" method="post">

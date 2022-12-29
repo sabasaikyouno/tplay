@@ -42,6 +42,7 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
     readOnly { implicit session =>
       val sql =
         sql"""SELECT
+             | content_id,
              | user_id,
              | content_type,
              | content,
@@ -54,16 +55,31 @@ class PostedDataRepositoryImpl extends PostedDataRepository {
       sql.map(resultSetToPostedData).list().apply()
     }
 
+  def deletePosted(roomId: String, contentId: Long, userId: String): Future[_] =
+    localTx { implicit session =>
+      val sql =
+        sql"""DELETE
+             | FROM
+             | posted_properties
+             | WHERE room_id = $roomId
+             | AND content_id = $contentId
+             | AND user_id = $userId
+           """.stripMargin
+      sql.update().apply()
+    }
+
   private[this] def resultSetToPostedData(rs: WrappedResultSet): PostedData =
     rs.string("content_type") match {
       case "text" =>
         PostedText(
+          contentId = rs.long("content_id"),
           user = UserData(rs.string("user_id")),
           text = rs.string("content"),
           createdTime = rs.localDateTime("created_time")
         )
       case "image" =>
         PostedImage(
+          contentId = rs.long("content_id"),
           user = UserData(rs.string("user_id")),
           img = rs.string("content"),
           createdTime = rs.localDateTime("created_time")

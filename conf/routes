@@ -3,13 +3,14 @@ GET     /                           controllers.HomeController.index(page: Optio
 GET     /login                      controllers.HomeController.loginFormView
 GET     /getImage/:fileName         controllers.HomeController.getImage(fileName, roomId: String)
 GET     /room/:roomId               controllers.HomeController.room(roomId, page: Option[Int])
-GET     /room/:roomId/edit          controllers.HomeController.roomEdit(roomId: String)
+GET     /room/:roomId/edit          controllers.HomeController.roomEdit(roomId)
 POST    /post_text                  controllers.HomeController.postText(roomId: String)
 POST    /post_image                 controllers.HomeController.postImage(roomId: String)
 POST    /room                       controllers.HomeController.createRoom
 POST    /signup                     controllers.HomeController.signup
 POST    /login                      controllers.HomeController.login
-POST    /room/:roomId/edit          controllers.HomeController.roomUpdate(roomId: String)
+POST    /room/:roomId/edit          controllers.HomeController.roomUpdate(roomId)
+POST    /room/:roomId/delete        controllers.HomeController.deletePosted(roomId, contentId: Long)
 
 GET     /json/                      controllers.JsonController.index(page: Option[Int], tag: Option[String], order: Option[String])
 GET     /json/room/:roomId          controllers.JsonController.room(roomId, page: Option[Int])

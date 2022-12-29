@@ -9,4 +9,6 @@ trait PostedDataRepository {
   def create(postData: PostData): Future[_]
 
   def getLatestPosted(roomId: String, limit: Int, page: Int): Future[List[PostedData]]
+
+  def deletePosted(roomId: String, contentId: Long, userId: String): Future[_]
 }

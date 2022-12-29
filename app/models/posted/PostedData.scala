@@ -7,6 +7,7 @@ import play.api.libs.json._
 import models.user.UserData
 
 trait PostedData {
+  val contentId: Long
   val user: UserData
   val createdTime: LocalDateTime
 }
