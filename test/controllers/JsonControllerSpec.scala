@@ -4,6 +4,10 @@ import java.util.UUID
 
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
+import play.api.Application
+import play.api.db.Databases
+import play.api.db.evolutions.{ClassLoaderEvolutionsReader, Evolutions}
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test._
 import play.api.test.Helpers._
@@ -12,6 +16,14 @@ import play.api.libs.json.Reads._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class JsonControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injecting {
+
+  override def fakeApplication(): Application = {
+    new GuiceApplicationBuilder()
+      .configure(
+        "db.default.driver" -> "com.mysql.jdbc.Driver",
+        "db.default.url" -> "jdbc:mysql://192.168.99.100:3306/test_tplay")
+      .build()
+  }
 
   "JsonController Test" should {
 

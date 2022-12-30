@@ -4,6 +4,10 @@ import java.util.UUID
 
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
+import play.api.Application
+import play.api.db.Databases
+import play.api.db.evolutions.{ClassLoaderEvolutionsReader, Evolutions}
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.test.Helpers._
 
@@ -12,11 +16,19 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injecting {
 
+  override def fakeApplication(): Application = {
+    new GuiceApplicationBuilder()
+      .configure(
+        "db.default.driver" -> "com.mysql.jdbc.Driver",
+        "db.default.url" -> "jdbc:mysql://192.168.99.100:3306/test_tplay")
+      .build()
+  }
+
   "HomeController Test" should {
 
     val testName, testPass = UUID.randomUUID().toString
     val signup = route(app, FakeRequest(POST, "/signup").withFormUrlEncodedBody("userId" -> testName, "password" -> testPass)).get
-    val login = signup.flatMap(_ => route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get)
+    val login = signup.flatMap(_ => route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> testName, "password" -> testPass)).get)
     val loginCookie = cookies(login).get("id").get
 
     "ログインせずhomeにアクセスすると、login_formにリダイレクトする" in {
@@ -60,7 +72,7 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
 
     val testName, testPass = UUID.randomUUID().toString
     val signup = route(app, FakeRequest(POST, "/signup").withFormUrlEncodedBody("userId" -> testName, "password" -> testPass)).get
-    val login = signup.flatMap(_ => route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> "a", "password" -> "a")).get)
+    val login = signup.flatMap(_ => route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> testName, "password" -> testPass)).get)
     val loginCookie = cookies(login).get("id").get
 
     "create roomパラメーターなし" in {

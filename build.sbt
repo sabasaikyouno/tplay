@@ -16,6 +16,7 @@ libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-config" % "3.5.0"
 libraryDependencies += "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % "2.8.0-scalikejdbc-3.5"
 libraryDependencies += "mysql" % "mysql-connector-java" % "8.0.29"
 libraryDependencies += ehcache
+libraryDependencies += jdbc % Test
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.example.controllers._"
