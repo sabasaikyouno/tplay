@@ -2,9 +2,12 @@ package controllers
 
 import java.util.UUID
 
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
 import play.api.Application
+import play.api.db.DBApi
+import play.api.db.evolutions.Evolutions
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.test.Helpers._
@@ -12,7 +15,12 @@ import play.api.test.Helpers._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
-class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injecting {
+class HomeControllerSpec extends PlaySpec with BeforeAndAfter with BeforeAndAfterAll with GuiceOneAppPerSuite with Injecting {
+
+  override def afterAll(): Unit = {
+    val database = app.injector.instanceOf[DBApi].database("default")
+    Evolutions.cleanupEvolutions(database)
+  }
 
   override def fakeApplication(): Application = {
     new GuiceApplicationBuilder()
@@ -69,7 +77,6 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
   "Room Success Test" should {
 
     val (testName, loginCookie) = createUser
-    val (testName2, loginCookie2) = createUser
 
     "create roomパラメーターなし" in {
       val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)).get
@@ -131,7 +138,6 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
 
     "room ログインしないと見れない" in {
       val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)).get
-      println(redirectLocation(createRoom).get)
       val room = route(app, FakeRequest(GET, redirectLocation(createRoom).get)).get
 
       status(room) mustBe 303
