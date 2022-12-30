@@ -164,6 +164,14 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
       sql.map(resultSetToRoomData).single().apply()
     }
 
+  def update(roomId: String, room: Room): Future[_] = {
+    updateRoom(roomId, room.title.getOrElse("noTitle"), room.contentType.getOrElse("text/image"))
+    room.authUser.foreach( users =>
+      updateAuthUser(roomId, users.split(" "))
+    )
+    updateTag(roomId, room.tag.map(_.split(" ")).getOrElse(Array("noTag")))
+  }
+
   def updateRoom(roomId: String, title: String, contentType: String): Future[_] =
     localTx { implicit session =>
       val sql =

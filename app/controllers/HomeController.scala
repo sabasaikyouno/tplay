@@ -121,16 +121,13 @@ class HomeController @Inject()(
     } yield Ok(views.html.roomEdit(roomId, roomData, tags, authUsers))
   }
 
-  def roomUpdate(roomId: String) = RoomEditAction(roomId) { implicit request =>
+  def roomUpdate(roomId: String) = RoomEditAction(roomId).async { implicit request =>
     roomForm.bindFromRequest.fold(
-      errors => Redirect("/"),
-      roomForm => {
-        roomDataRepository.updateRoom(roomId, roomForm.title.getOrElse("noTitle"), roomForm.contentType.getOrElse("text/image"))
-        roomDataRepository.updateTag(roomId, roomForm.tag.map(_.split(" ")).getOrElse(Array("noTag")))
-        roomForm.authUser.foreach( users =>
-          roomDataRepository.updateAuthUser(roomId, users.split(" "))
+      errors => Future(Redirect("/")),
+      room => {
+        roomDataRepository.update(roomId, room).map(_ =>
+          Redirect(s"/room/$roomId")
         )
-        Redirect("/")
       }
     )
   }
