@@ -66,7 +66,7 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
     }
   }
 
-  "Room Test" should {
+  "Room Success Test" should {
 
     val testName, testPass = UUID.randomUUID().toString
     val signup = route(app, FakeRequest(POST, "/signup").withFormUrlEncodedBody("userId" -> testName, "password" -> testPass)).get
@@ -110,12 +110,43 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
 
       status(room) mustBe 200
     }
+  }
+
+  "Room Failure Test" should {
+
+    val testName, testPass = UUID.randomUUID().toString
+    val signup = route(app, FakeRequest(POST, "/signup").withFormUrlEncodedBody("userId" -> testName, "password" -> testPass)).get
+    val login = signup.flatMap(_ => route(app, FakeRequest(POST, "/login").withFormUrlEncodedBody("userId" -> testName, "password" -> testPass)).get)
+    val loginCookie = cookies(login).get("id").get
 
     "create room ログインしないと作れない" in {
       val createRoom = route(app, FakeRequest(POST, "/room")).get
 
       status(createRoom) mustBe 303
       redirectLocation(createRoom) mustBe Some("/login")
+    }
+
+    "room ログインしないと見れない" in {
+      val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)).get
+      println(redirectLocation(createRoom).get)
+      val room = route(app, FakeRequest(GET, redirectLocation(createRoom).get)).get
+
+      status(room) mustBe 303
+      redirectLocation(room) mustBe Some("/login")
+    }
+
+    "room authUserじゃないと見れない" in {
+      val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)
+        .withFormUrlEncodedBody(
+          "title" -> "authUsers",
+          "tag" -> "test test2",
+          "authUser" -> "notMe",
+          "contentType" -> "text/image"
+        )).get
+      val room = route(app, FakeRequest(GET, redirectLocation(createRoom).get).withCookies(loginCookie)).get
+
+      status(room) mustBe 303
+      redirectLocation(room) mustBe Some("/")
     }
   }
 }
