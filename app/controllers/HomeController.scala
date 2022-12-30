@@ -78,13 +78,14 @@ class HomeController @Inject()(
     }
   }
 
-  def createRoom = UserAction { implicit request =>
+  def createRoom = UserAction.async { implicit request =>
     roomForm.bindFromRequest.fold(
-      errors => NotFound(errors.toString),
+      errors => Future(NotFound(errors.toString)),
       room => {
         val roomId = UUID.randomUUID().toString
-        roomDataRepository.create(roomId, room)
-        Redirect("/")
+        roomDataRepository.create(roomId, room).map(_ =>
+          Redirect(s"/room/$roomId")
+        )
       }
     )
   }

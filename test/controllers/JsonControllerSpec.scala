@@ -5,8 +5,6 @@ import java.util.UUID
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
 import play.api.Application
-import play.api.db.Databases
-import play.api.db.evolutions.{ClassLoaderEvolutionsReader, Evolutions}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test._

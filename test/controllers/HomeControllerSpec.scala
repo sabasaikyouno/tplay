@@ -5,8 +5,6 @@ import java.util.UUID
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
 import play.api.Application
-import play.api.db.Databases
-import play.api.db.evolutions.{ClassLoaderEvolutionsReader, Evolutions}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test._
 import play.api.test.Helpers._
@@ -79,20 +77,38 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerSuite with Injectin
       val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)).get
 
       status(createRoom) mustBe 303
-      redirectLocation(createRoom) mustBe Some("/")
     }
 
-    "create room パラメーターあり" in {
+    "room" in {
+      val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)).get
+      val room = route(app, FakeRequest(GET, s"${redirectLocation(createRoom).get}").withCookies(loginCookie)).get
+
+      status(room) mustBe 200
+    }
+
+    "create room パラメーターありユーザー認証" in {
       val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)
         .withFormUrlEncodedBody(
-          "title" -> "test",
+          "title" -> "authUsers",
           "tag" -> "test test2",
-          "authUser" -> "a",
+          "authUser" -> testName,
           "contentType" -> "text/image"
         )).get
 
       status(createRoom) mustBe 303
-      redirectLocation(createRoom) mustBe Some("/")
+    }
+
+    "room パラメーターありユーザー認証" in {
+      val createRoom = route(app, FakeRequest(POST, "/room").withCookies(loginCookie)
+        .withFormUrlEncodedBody(
+          "title" -> "authUsers",
+          "tag" -> "test test2",
+          "authUser" -> testName,
+          "contentType" -> "text/image"
+        )).get
+      val room = route(app, FakeRequest(GET, redirectLocation(createRoom).get).withCookies(loginCookie)).get
+
+      status(room) mustBe 200
     }
 
     "create room ログインしないと作れない" in {
