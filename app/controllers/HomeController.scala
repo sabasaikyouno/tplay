@@ -138,4 +138,9 @@ class HomeController @Inject()(
     postedDataRepository.deletePosted(roomId, contentId, request.user.name)
     Redirect(s"/room/$roomId")
   }
+
+  def deleteRoom(roomId: String) = RoomEditAction(roomId) { implicit request =>
+    roomDataRepository.delete(roomId)
+    Redirect("/")
+  }
 }

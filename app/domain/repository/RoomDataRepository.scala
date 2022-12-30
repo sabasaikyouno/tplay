@@ -37,6 +37,10 @@ trait RoomDataRepository {
 
   def updateAuthUser(roomId: String, users: Array[String]): Future[_]
 
+  def delete(roomId: String): Future[_]
+
+  def deleteRoom(roomId: String): Future[_]
+
   def deleteTag(roomId: String): Future[_]
 
   def deleteAuthUser(roomId: String): Future[_]

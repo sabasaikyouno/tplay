@@ -10,7 +10,7 @@
         case PostedImage(_, UserData(id), img, createdTime) => {<img src="/getImage/@img?roomId=@roomData.id">}
     }
     @if(postedData.user.name == myName) {
-        <form action="/room/@roomData.roomId/delete?contentId=@postedData.contentId" method="post">
+        <form action="/room/@roomData.roomId/deletePosted?contentId=@postedData.contentId" method="post">
             <input type="submit" value="delete">
         </form>
     }
@@ -27,4 +27,8 @@
 
 <button onclick="location.href='/room/@roomData.roomId?page=@{page/3 - 1}'">next</button>
 <button onclick="location.href='/room/@roomData.roomId?page=@{page/3 + 1}'">pre</button>
+<button onclick="location.href='/room/@roomData.roomId/edit'">edit</button>
+<form action="/room/@roomData.roomId/delete" method="post">
+    <input type="submit" value="delete room">
+</form>
 }

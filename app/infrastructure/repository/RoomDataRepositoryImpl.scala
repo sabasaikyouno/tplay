@@ -187,6 +187,22 @@ class RoomDataRepositoryImpl extends RoomDataRepository {
     createAuthUser(roomId, users)
   }
 
+  def delete(roomId: String): Future[_] = {
+    deleteRoom(roomId)
+    deleteTag(roomId)
+    deleteAuthUser(roomId)
+  }
+
+  def deleteRoom(roomId: String): Future[_] =
+    localTx { implicit session =>
+      val sql =
+        sql"""DELETE
+             | FROM room_properties
+             | WHERE room_id = $roomId
+           """.stripMargin
+      sql.update().apply()
+    }
+
   def deleteTag(roomId: String): Future[_] =
     localTx { implicit session =>
       val sql =
